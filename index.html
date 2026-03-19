@@ -261,7 +261,7 @@ data.forEach(function(b){
 });
 
 var grp=L.featureGroup(ms);
-map.fitBounds(grp.getBounds().pad(0.12));
+if(ms.length>0) map.fitBounds(grp.getBounds().pad(0.12));
 
 window.sw=function(k,btn){
   map.removeLayer(cur);
@@ -273,7 +273,7 @@ window.sw=function(k,btn){
   btn.classList.add('on');
 };
 window.tl=function(){lv=!lv;ls.forEach(function(l){if(lv)l.addTo(map);else map.removeLayer(l);});};
-window.za=function(){map.fitBounds(grp.getBounds().pad(0.12));};
+window.za=function(){if(ms.length>0) map.fitBounds(grp.getBounds().pad(0.12));};
 
 // === PUNT TOEVOEGEN ===
 var addMode=false;
