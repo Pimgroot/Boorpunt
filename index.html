@@ -218,11 +218,12 @@ var tiles={
   osm:L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'OSM'})
 };
 
-// Bereken center alvast
-var cLat=data.reduce(function(s,d){return s+d.lat;},0)/data.length;
-var cLng=data.reduce(function(s,d){return s+d.lng;},0)/data.length;
+// Bereken center alvast — default Nederland midden als geen data
+var cLat=data.length>0?data.reduce(function(s,d){return s+d.lat;},0)/data.length:52.3;
+var cLng=data.length>0?data.reduce(function(s,d){return s+d.lng;},0)/data.length:4.9;
+var defZoom=data.length>0?15:8;
 
-var map=L.map('map',{center:[cLat,cLng],zoom:15});
+var map=L.map('map',{center:[cLat,cLng],zoom:defZoom});
 
 var cur=tiles.sat, curKey='sat';
 cur.addTo(map);
