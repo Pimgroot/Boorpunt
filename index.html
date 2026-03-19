@@ -94,24 +94,6 @@ td{padding:4px 8px;border-bottom:1px solid #eee}
 try {
 
 var B=[
-["A001",136198,496852,200,40],["A002",136198,496839,200,40],["A003",136214,496848,195,40],
-["A004",136219,496852,180,40],["A005",136224,496854,185,40],["A006",136230,496855,195,40],
-["A007",136241,496863,200,40],["A008",136247,496862,180,40],["A009",136252,496865,180,40],
-["A010",136256,496869,200,40],["A011",136268,496874,195,40],["A012",136274,496876,175,40],
-["A013",136279,496878,190,40],["A014",136293,496886,185,40],["A015",136293,496892,180,40],
-["A016",136266,496896,190,40],["A017",136259,496895,175,40],["A018",136254,496892,190,40],
-["A027",136223,496877,195,40],["A028",136218,496874,180,40],["A029",136212,496873,190,40],
-["A038",136558,496984,180,40],["A039",136556,496991,185,40],["A040",136560,497004,190,40],
-["A041",136559,497010,175,40],["A042",136561,497016,190,40],["A054",136576,497043,225,40],
-["A055",136580,497058,235,45],["A056",136568,497078,235,45],["A057",136546,497065,195,40],
-["A058",136540,497065,200,40],["A059",136527,497066,200,40],["A060",136521,497069,195,40],
-["A061",136507,497068,210,40],["A062",136495,497070,195,40],["A063",136488,497069,175,40],
-["A064",136482,497071,190,40],["A065",136459,497079,235,45],["A066",136456,497051,235,45],
-["A067",136470,497038,225,40],["A068",136491,497050,185,40],["A069",136497,497049,190,40],
-["A086",136535,497021,195,40],["A087",136536,497027,200,40],["A088",136525,497031,200,40],
-["A089",136524,497025,200,40],["A090",136524,497018,195,40],["A091",136523,497012,185,40],
-["A092",136538,497041,200,40],["A093",136539,497047,200,40],["A094",136527,497044,200,40],
-["A095",136528,497050,200,40]
 ];
 
 function rd(x,y){
@@ -212,7 +194,11 @@ var tot=data.reduce(function(s,d){return s+d.d;},0);
 
 buildColorScale();
 
-document.getElementById('info').innerHTML='<span><b>'+data.length+'</b> boringen</span><span><b>'+tot.toLocaleString('nl-NL')+'</b> boormeters</span><span>Gem: <b>'+Math.round(tot/data.length)+'m</b></span>';
+if(data.length>0){
+  document.getElementById('info').innerHTML='<span><b>'+data.length+'</b> boringen</span><span><b>'+tot.toLocaleString('nl-NL')+'</b> boormeters</span><span>Gem: <b>'+Math.round(tot/data.length)+'m</b></span>';
+} else {
+  document.getElementById('info').innerHTML='<span>Geen boorpunten — importeer via CSV/Excel of voeg handmatig toe</span>';
+}
 
 // Status
 var st=document.getElementById('status');
@@ -699,7 +685,7 @@ window.exportPDF=function(){
     pdf.setFontSize(8);
     var infoTxt=visible.length+' boringen';
     if(visible.length<data.length) infoTxt+=' (van '+data.length+' totaal)';
-    infoTxt+='  |  '+visTot.toLocaleString('nl-NL')+' boormeters  |  Gem: '+Math.round(visTot/visible.length)+'m  |  Locatie: Marken';
+    infoTxt+='  |  '+visTot.toLocaleString('nl-NL')+' boormeters  |  Gem: '+Math.round(visTot/visible.length)+'m';
     pdf.text(infoTxt,mg,20);
 
     // Map image - fill as much page as possible
