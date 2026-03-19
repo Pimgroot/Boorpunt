@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veldwerkformulier BRL2000 — Ground Research BV</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f5;min-height:100vh}
+h1.header{background:#1e3a5f;color:#fff;padding:16px 24px;font-size:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+h1.header .sub{font-size:11px;font-weight:400;opacity:.8}
+h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
+.container{max-width:1100px;margin:0 auto;padding:16px}
+.card{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.1);margin-bottom:16px;overflow:hidden}
+.card-head{background:#1e3a5f;color:#fff;padding:10px 16px;font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.card-head:hover{background:#253f66}
+.card-head .toggle{font-size:18px;transition:transform .2s}
+.card-head .toggle.collapsed{transform:rotate(-90deg)}
+.card-body{padding:16px}
+.card-body.collapsed{display:none}
+
+/* Drop zone */
+.dropzone{border:3px dashed #1e3a5f;border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#f8f9fb}
+.dropzone:hover,.dropzone.dragover{background:#e3eaf5;border-color:#0d47a1}
+.dropzone .icon{font-size:48px;margin-bottom:8px}
+.dropzone .title{font-size:16px;font-weight:700;color:#1e3a5f}
+.dropzone .sub{font-size:12px;color:#666;margin-top:4px}
+.dropzone input[type=file]{display:none}
+
+/* Form fields */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.form-group{display:flex;flex-direction:column;gap:3px}
+.form-group label{font-size:11px;font-weight:600;color:#1e3a5f;text-transform:uppercase;letter-spacing:.3px}
+.form-group input,.form-group select,.form-group textarea{padding:8px 10px;border:1px solid #ccc;border-radius:4px;font-size:13px;font-family:inherit;transition:border .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#1e3a5f;box-shadow:0 0 0 2px rgba(30,58,95,.15)}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-full{grid-column:1/-1}
+
+/* Checkboxes */
+.check-grid{display:flex;flex-wrap:wrap;gap:6px 16px}
+.check-item{display:flex;align-items:center;gap:5px;font-size:12px}
+.check-item input[type=checkbox]{accent-color:#1e3a5f;width:16px;height:16px}
+
+/* Protocol selector */
+.proto-select{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.proto-btn{padding:8px 16px;border:2px solid #1e3a5f;border-radius:6px;background:#fff;color:#1e3a5f;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.proto-btn:hover{background:#e3eaf5}
+.proto-btn.active{background:#1e3a5f;color:#fff}
+
+/* Tables */
+.form-table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.form-table th{background:#1e3a5f;color:#fff;padding:6px 8px;text-align:left;font-size:11px}
+.form-table td{padding:4px 6px;border:1px solid #ddd}
+.form-table input,.form-table select{width:100%;border:1px solid #ddd;padding:4px 6px;font-size:12px;border-radius:2px}
+.form-table .add-row{background:#2e7d32;color:#fff;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;margin-top:6px}
+.form-table .del-row{background:#c62828;color:#fff;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:10px}
+
+/* Buttons */
+.btn{padding:10px 20px;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.btn-primary{background:#1e3a5f;color:#fff}
+.btn-danger{background:#c62828;color:#fff}
+.btn-success{background:#2e7d32;color:#fff}
+.btn-orange{background:#e65100;color:#fff}
+.btn-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+/* Status bar */
+.status-bar{padding:8px 16px;font-size:12px;display:none;border-radius:6px;margin-bottom:12px}
+.status-bar.success{display:block;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
+.status-bar.error{display:block;background:#ffebee;color:#c62828;border:1px solid #ef9a9a}
+.status-bar.info{display:block;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9}
+
+/* Section divider */
+.section-title{font-size:13px;font-weight:700;color:#1e3a5f;border-bottom:2px solid #1e3a5f;padding-bottom:4px;margin:16px 0 10px}
+
+/* Signature fields */
+.sig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.sig-box{border:1px solid #ccc;border-radius:4px;padding:12px;text-align:center}
+.sig-box label{font-size:11px;color:#1e3a5f;font-weight:600;display:block;margin-bottom:8px}
+.sig-line{border-bottom:1px solid #333;height:40px;margin-bottom:4px}
+.sig-box .sig-date{font-size:10px;color:#999}
+
+/* Parse result */
+.parse-result{background:#f0f4f8;border:1px solid #c5cae9;border-radius:6px;padding:12px;margin:12px 0;font-size:12px}
+.parse-result b{color:#1e3a5f}
+.parse-count{display:inline-block;background:#1e3a5f;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+
+@media(max-width:600px){
+  h1.header{padding:12px 16px;font-size:15px}
+  .container{padding:8px}
+  .form-grid{grid-template-columns:1fr}
+  .proto-select{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<h1 class="header">
+  <div>
+    🔬 Ground Research BV
+    <div class="sub">Vrijheidweg 45, 1521RP Wormerveer</div>
+    <div class="cert">BRL SIKB 2000/2100/11000 gecertificeerd (K41104/10)</div>
+  </div>
+  <div style="text-align:right">
+    <div style="font-size:14px">Veldwerkformulier BRL2000</div>
+    <div class="sub">Genereer professionele BRL-formulieren</div>
+  </div>
+</h1>
+
+<div class="container">
+
+<!-- Status -->
+<div id="statusBar" class="status-bar"></div>
+
+<!-- DOCX Drop Zone -->
+<div class="card">
+  <div class="card-head" onclick="toggleCard(this)">
+    📂 DOCX Import — Sleep een veldwerkopdracht
+    <span class="toggle">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="dropzone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="icon">📄</div>
+      <div class="title">Sleep een DOCX-bestand hier</div>
+      <div class="sub">Of klik om een bestand te selecteren — Arcadis/klant veldwerkopdracht formaat</div>
+      <input type="file" id="fileInput" accept=".docx">
+    </div>
+    <div id="parseResult" class="parse-result" style="display:none"></div>
+  </div>
+</div>
+
+<!-- Protocol keuze -->
+<div class="card">
+  <div class="card-head" onclick="toggleCard(this)">
+    📋 Protocol Keuze
+    <span class="toggle">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="proto-select" id="protoSelect">
+      <button class="proto-btn active" onclick="selectProtocol('2001',this)">Protocol 2001<br><small>Handboringen & peilbuizen</small></button>
+      <button class="proto-btn" onclick="selectProtocol('2002',this)">Protocol 2002<br><small>Monsterneming grondwater</small></button>
+      <button class="proto-btn" onclick="selectProtocol('2018',this)">Protocol 2018<br><small>Maaiveldinspectie asbest</small></button>
+      <button class="proto-btn" onclick="selectProtocol('2100',this)">Protocol 2100<br><small>Mechanisch boren</small></button>
+    </div>
+  </div>
+</div>
+
+<!-- Algemene gegevens -->
+<div class="card">
+  <div class="card-head" onclick="toggleCard(this)">
+    📝 Algemene Projectgegevens
+    <span class="toggle">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="form-grid">
+      <div class="form-group"><label>Projectnaam</label><input id="f_projectnaam" placeholder="Bijv. PB-25-10406"></div>
+      <div class="form-group"><label>Projectnummer</label><input id="f_projectnummer" placeholder="Bijv. 30250705"></div>
+      <div class="form-group"><label>Projectleider</label><input id="f_projectleider" placeholder="Naam projectleider"></div>
+      <div class="form-group"><label>Contactpersoon kantoor (BRL)</label><input id="f_contactpersoon_brl" placeholder="Naam + telefoonnummer"></div>
+      <div class="form-group"><label>Klantnaam</label><input id="f_klantnaam" placeholder="Opdrachtgever"></div>
+      <div class="form-group"><label>Onderzoekslocatie</label><input id="f_locatie" placeholder="Adres en plaatsnaam"></div>
+      <div class="form-group"><label>Contactpersoon locatie</label><input id="f_contact_locatie" placeholder="Naam + tel"></div>
+      <div class="form-group"><label>Veldwerker(s)</label><input id="f_veldwerkers" placeholder="Naam veldwerker(s)"></div>
+      <div class="form-group"><label>Veldwerker in opleiding / assistent</label><input id="f_assistent" placeholder="Naam assistent"></div>
+      <div class="form-group"><label>Uitvoeringsperiode</label><input id="f_uitvoeringsperiode" placeholder="dd-mm-jjjj tot dd-mm-jjjj"></div>
+      <div class="form-group"><label>Laboratorium</label><input id="f_laboratorium" placeholder="Bijv. AL-West"></div>
+      <div class="form-group"><label>Spoed lab</label>
+        <select id="f_spoed_lab"><option value="nee">Nee</option><option value="ja">Ja</option></select>
+      </div>
+      <div class="form-group"><label>Werkvergunning vereist</label>
+        <select id="f_werkvergunning"><option value="nee">Nee</option><option value="ja">Ja</option></select>
+      </div>
+      <div class="form-group"><label>Tijdsafspraak locatie</label><input id="f_tijdsafspraak" placeholder="Tijdstip of n.v.t."></div>
+      <div class="form-group"><label>Tijdsbesteding (uur)</label><input id="f_tijdsbesteding" type="number" placeholder="Uren"></div>
+    </div>
+
+    <div class="section-title">Type onderzoek</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_nen5720"> NEN 5720</label>
+      <label class="check-item"><input type="checkbox" id="f_nen5740"> NEN 5740</label>
+      <label class="check-item"><input type="checkbox" id="f_nen5707"> NEN 5707</label>
+      <label class="check-item"><input type="checkbox" id="f_nen5897"> NEN 5897</label>
+      <label class="check-item"><input type="checkbox" id="f_nta5755"> NTA 5755</label>
+      <label class="check-item"><input type="checkbox" id="f_crow210"> CROW 210</label>
+      <label class="check-item"><input type="checkbox" id="f_ap04"> AP04 / protocol 1001</label>
+      <label class="check-item"><input type="checkbox" id="f_sikb6000"> BRL SIKB 6000</label>
+      <label class="check-item"><input type="checkbox" id="f_sikb7000"> BRL SIKB 7000</label>
+      <label class="check-item"><input type="checkbox" id="f_indicatief"> Geen norm (indicatief)</label>
+    </div>
+
+    <div class="section-title">Betreding locatie</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_betr_portier"> Melden bij portier/contactpersoon</label>
+      <label class="check-item"><input type="checkbox" id="f_betr_hekwerk"> Afgesloten hekwerk</label>
+      <label class="check-item"><input type="checkbox" id="f_betr_vrij"> Vrije toegang</label>
+    </div>
+
+    <div class="section-title">BRL-formulieren bij deze opdracht</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_form2001"> Protocol 2001</label>
+      <label class="check-item"><input type="checkbox" id="f_form2002"> Protocol 2002</label>
+      <label class="check-item"><input type="checkbox" id="f_form2003"> Protocol 2003</label>
+      <label class="check-item"><input type="checkbox" id="f_form2018"> Protocol 2018</label>
+    </div>
+
+    <div class="section-title">Werkomschrijving</div>
+    <div class="form-group form-full">
+      <textarea id="f_werkomschrijving" rows="3" placeholder="Aanleiding, doel, toelichting onderzoekswerk..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- V&G Informatie -->
+<div class="card">
+  <div class="card-head" onclick="toggleCard(this)">
+    ⚠️ V&G — Voorinformatie & Veiligheid
+    <span class="toggle">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">Werkomgeving</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_wo_bedrijf"> Bedrijfslocatie</label>
+      <label class="check-item"><input type="checkbox" id="f_wo_woonwijk"> Woonwijk / binnenstedelijk</label>
+      <label class="check-item"><input type="checkbox" id="f_wo_buiten"> Buitengebied</label>
+      <label class="check-item"><input type="checkbox" id="f_wo_weg"> Naast een weg</label>
+      <label class="check-item"><input type="checkbox" id="f_wo_water"> Naast een watergang</label>
+      <label class="check-item"><input type="checkbox" id="f_wo_spoor"> Naast het spoor</label>
+    </div>
+
+    <div class="section-title">Te verwachten toxische stoffen</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_tox_asbest"> Asbest [C]</label>
+      <label class="check-item"><input type="checkbox" id="f_tox_metalen"> Zware metalen</label>
+      <label class="check-item"><input type="checkbox" id="f_tox_olie"> Minerale olie [C]</label>
+      <label class="check-item"><input type="checkbox" id="f_tox_pak"> PAK [CM]</label>
+      <label class="check-item"><input type="checkbox" id="f_tox_pcb"> PCB</label>
+      <label class="check-item"><input type="checkbox" id="f_tox_ocb"> OCB</label>
+      <label class="check-item"><input type="checkbox" id="f_tox_btexn"> BTEXN [CMR]</label>
+      <label class="check-item"><input type="checkbox" id="f_tox_vocl"> VOCl [CR]</label>
+      <label class="check-item"><input type="checkbox" id="f_tox_pfas"> PFAS [R]</label>
+      <label class="check-item"><input type="checkbox" id="f_tox_geen"> Geen verontreinigingen</label>
+    </div>
+
+    <div class="section-title">Meetinstrumenten</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_mi_pid_vox"> PID-meter VOx</label>
+      <label class="check-item"><input type="checkbox" id="f_mi_pid_benz"> PID-meter benzeen</label>
+      <label class="check-item"><input type="checkbox" id="f_mi_exox"> Explosiemeter (Ex/Ox)</label>
+      <label class="check-item"><input type="checkbox" id="f_mi_vocht"> Bodemvochtmeter</label>
+      <label class="check-item"><input type="checkbox" id="f_mi_cat"> CAT-scan (kabeldetector)</label>
+      <label class="check-item"><input type="checkbox" id="f_mi_h2s"> H2S-pieper</label>
+      <label class="check-item"><input type="checkbox" id="f_mi_kwik"> Kwikdampmeter</label>
+    </div>
+
+    <div class="section-title">PBM's</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_pbm_basis" checked> Basisuitrusting CROW 400</label>
+      <label class="check-item"><input type="checkbox" id="f_pbm_overall"> Overall</label>
+      <label class="check-item"><input type="checkbox" id="f_pbm_handsch"> Werkhandschoenen</label>
+      <label class="check-item"><input type="checkbox" id="f_pbm_laarzen"> Laarzen</label>
+      <label class="check-item"><input type="checkbox" id="f_pbm_helm"> Helm</label>
+      <label class="check-item"><input type="checkbox" id="f_pbm_bril"> Veiligheidsbril</label>
+      <label class="check-item"><input type="checkbox" id="f_pbm_gehoor"> Gehoorbescherming</label>
+      <label class="check-item"><input type="checkbox" id="f_pbm_sanoverall"> Saneringsoverall</label>
+      <label class="check-item"><input type="checkbox" id="f_pbm_halfgelaat"> Halfgelaatsmasker</label>
+      <label class="check-item"><input type="checkbox" id="f_pbm_volgelaat"> Volgelaatsmasker</label>
+      <label class="check-item"><input type="checkbox" id="f_pbm_abek"> Filter ABEK-P3</label>
+    </div>
+
+    <div class="section-title">Kabels & leidingen / OO</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_kl_klic"> KLIC-graafmelding</label>
+      <label class="check-item"><input type="checkbox" id="f_kl_tekening"> Tekening opdrachtgever</label>
+      <label class="check-item"><input type="checkbox" id="f_oo_verdacht"> OO verdacht</label>
+      <label class="check-item"><input type="checkbox" id="f_oo_onverdacht"> OO onverdacht</label>
+    </div>
+
+    <div class="section-title">Contact in noodsituatie</div>
+    <div class="form-grid">
+      <div class="form-group"><label>HVK'er</label><input id="f_hvk" placeholder="Naam + tel"></div>
+      <div class="form-group"><label>Dichtstbijzijnde huisarts/EHBO</label><input id="f_ehbo" placeholder="Adres + tel"></div>
+    </div>
+
+    <div class="section-title">V&G Toelichting</div>
+    <div class="form-group form-full">
+      <textarea id="f_vg_toelichting" rows="3" placeholder="KLIC, OO-verdenking, verkeersmaatregelen, PBM's..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Protocol 2001 -->
+<div class="card protocol-section" id="section_2001">
+  <div class="card-head" onclick="toggleCard(this)">
+    🔩 Protocol 2001 — Handboringen, peilbuizen, grondmonstername
+    <span class="toggle">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">Uitvoeringsplan</div>
+    <table class="form-table" id="table2001">
+      <thead>
+        <tr><th>Terreindeel</th><th>Boringen (aantal/diepte)</th><th>Boringen met peilbuis</th><th>Codering</th><th>Analysepakket</th><th>Opmerkingen</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input data-field="terreindeel"></td>
+          <td><input data-field="boringen"></td>
+          <td><input data-field="peilbuizen"></td>
+          <td><input data-field="codering"></td>
+          <td><input data-field="analysepakket"></td>
+          <td><input data-field="opmerkingen"></td>
+          <td><button class="del-row" onclick="delRow(this)">✕</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="add-row" onclick="addRow2001()">+ Rij toevoegen</button>
+
+    <div class="section-title">Details</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Boringen onverhard (aantal)</label><input id="f_2001_onverhard" type="number" value="0"></div>
+      <div class="form-group"><label>Boringen met puin (aantal)</label><input id="f_2001_puin" type="number" value="0"></div>
+      <div class="form-group"><label>Boringen klinkers (aantal)</label><input id="f_2001_klinkers" type="number" value="0"></div>
+      <div class="form-group"><label>Boringen asfalt/beton (aantal)</label><input id="f_2001_asfalt" type="number" value="0"></div>
+    </div>
+    <div class="check-grid" style="margin-top:10px">
+      <label class="check-item"><input type="checkbox" id="f_2001_fotos"> Foto's maken</label>
+    </div>
+
+    <div class="section-title">Peilbuisafwerking</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_2001_schutkoker"> Schutkoker</label>
+      <label class="check-item"><input type="checkbox" id="f_2001_straatpot"> Straatpot</label>
+      <label class="check-item"><input type="checkbox" id="f_2001_punaise"> Punaise</label>
+      <label class="check-item"><input type="checkbox" id="f_2001_bio"> Biologisch afbreekbaar</label>
+    </div>
+
+    <div class="section-title">Bemonstering</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_2001_volledig"> Volledig profiel</label>
+      <label class="check-item"><input type="checkbox" id="f_2001_representatief"> Representatieve lagen</label>
+    </div>
+    <div class="form-grid" style="margin-top:10px">
+      <div class="form-group"><label>Verwachte grondwaterstand (m-mv)</label><input id="f_2001_gwstand" placeholder="Bijv. 1.5"></div>
+      <div class="form-group"><label>Maaiveld-kopbuis meten</label>
+        <select id="f_2001_kopbuis"><option value="ja">Ja</option><option value="nee">Nee</option></select>
+      </div>
+    </div>
+
+    <div class="section-title">Inmeting</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_2001_meetlint"> Meetwiel/meetlint</label>
+      <label class="check-item"><input type="checkbox" id="f_2001_gps"> RTK-GPS (Topcon)</label>
+      <label class="check-item"><input type="checkbox" id="f_2001_waterpas"> Waterpassing</label>
+    </div>
+    <div class="form-group" style="margin-top:8px">
+      <label>Benodigde nauwkeurigheid</label>
+      <select id="f_2001_nauwkeurigheid">
+        <option value="10m">≥ 10 meter (niet verdacht, landelijk)</option>
+        <option value="5m">≥ 5 meter</option>
+        <option value="1m" selected>≥ 1 meter (niet verdacht, stedelijk)</option>
+        <option value="0.5m">≥ 0,5 meter (verdacht stedelijk / asbest)</option>
+      </select>
+    </div>
+
+    <div class="section-title">Toelichting werkzaamheden</div>
+    <div class="form-group form-full">
+      <textarea id="f_2001_toelichting" rows="3" placeholder="Aanleiding, doel, strategie..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Protocol 2002 -->
+<div class="card protocol-section" id="section_2002" style="display:none">
+  <div class="card-head" onclick="toggleCard(this)">
+    💧 Protocol 2002 — Monsterneming grondwater
+    <span class="toggle">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">Bemonsteringsprotocol</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_2002_prot2002" checked> Protocol 2002 (NEN 5744:2023)</label>
+      <label class="check-item"><input type="checkbox" id="f_2002_nta8017"> NTA 8017:2016</label>
+      <label class="check-item"><input type="checkbox" id="f_2002_nen5744_excl"> NEN 5744:2023 excl. troebelheidsmeting</label>
+    </div>
+
+    <div class="form-grid" style="margin-top:12px">
+      <div class="form-group"><label>TerraIndex inlezen in tablet</label>
+        <select id="f_2002_terraindex"><option value="ja">Ja</option><option value="nee">Nee</option></select>
+      </div>
+      <div class="form-group"><label>Troebelheid >10 NTU</label>
+        <select id="f_2002_troebel"><option value="toch">Toch bemonsteren</option><option value="extra">Extra afpompen, week later</option></select>
+      </div>
+      <div class="form-group"><label>Filter niet juiste hoogte</label>
+        <select id="f_2002_filter"><option value="herplaatsen">Herplaatsen peilbuis</option><option value="toch">Toch bemonsteren (afwijking)</option></select>
+      </div>
+      <div class="form-group"><label>Analyses inzetten door</label>
+        <select id="f_2002_analyses"><option value="projectleider">Projectleider/specialist</option><option value="milieutechnicus">Milieutechnicus</option></select>
+      </div>
+      <div class="form-group"><label>Referentie grondwaterstand</label>
+        <select id="f_2002_referentie"><option value="maaiveld">Maaiveld (standaard)</option><option value="kopbuis">Kop buis</option></select>
+      </div>
+      <div class="form-group"><label>Maaiveld-kopbuis meten</label>
+        <select id="f_2002_kopbuis"><option value="ja">Ja</option><option value="nee">Nee (al bekend)</option></select>
+      </div>
+    </div>
+
+    <div class="section-title">Details peilbuizen</div>
+    <table class="form-table" id="table2002">
+      <thead>
+        <tr><th>Peilbuis</th><th>Filterstelling (m-mv)</th><th>Toestroming</th><th>Analysepakket</th><th>Spoed</th><th>Aanvullende veldmetingen</th><th>Opmerkingen</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input data-field="peilbuis"></td>
+          <td><input data-field="filterstelling"></td>
+          <td><select data-field="toestroming"><option>Goed</option><option>Slecht</option></select></td>
+          <td><input data-field="analysepakket"></td>
+          <td><select data-field="spoed"><option>Nee</option><option>Ja</option></select></td>
+          <td><input data-field="veldmetingen" placeholder="O2, redox, Cl-, Fe"></td>
+          <td><input data-field="opmerkingen"></td>
+          <td><button class="del-row" onclick="delRow(this)">✕</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="add-row" onclick="addRow2002()">+ Rij toevoegen</button>
+
+    <div class="section-title">Toelichting werkzaamheden</div>
+    <div class="form-group form-full">
+      <textarea id="f_2002_toelichting" rows="3" placeholder="Aanleiding, doel, strategie..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Protocol 2018 -->
+<div class="card protocol-section" id="section_2018" style="display:none">
+  <div class="card-head" onclick="toggleCard(this)">
+    🔍 Protocol 2018 — Maaiveldinspectie & monsterneming asbest
+    <span class="toggle">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">Terreininspectie & toelichting</div>
+    <div class="form-group form-full">
+      <textarea id="f_2018_toelichting" rows="3" placeholder="Aanleiding, doel, strategie, asbestverdacht/onverdacht..."></textarea>
+    </div>
+
+    <div class="section-title">Uitvoeringsplan</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Oppervlakte locatie (m²)</label><input id="f_2018_opp" type="number" placeholder="Onbebouwde deel"></div>
+      <div class="form-group"><label>Aantal RE's</label><input id="f_2018_re" type="number" placeholder="Ruimtelijke eenheden"></div>
+      <div class="form-group"><label>Inspectiegaten 0,5 m-mv (aantal)</label><input id="f_2018_gaten05" type="number" value="0"></div>
+      <div class="form-group"><label>Inspectiegaten 1,0 m-mv (aantal)</label><input id="f_2018_gaten10" type="number" value="0"></div>
+      <div class="form-group"><label>Inspectiesleuven 0,5 m-mv (aantal)</label><input id="f_2018_sleuven05" type="number" value="0"></div>
+      <div class="form-group"><label>Inspectiesleuven ≤2,0 m (aantal)</label><input id="f_2018_sleuven20" type="number" value="0"></div>
+      <div class="form-group"><label>Boringen (aantal)</label><input id="f_2018_boringen" type="number" value="0"></div>
+    </div>
+
+    <div class="section-title">Details monsterneming</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_2018_vis_maaiveld" checked> Visuele inspectie maaiveld</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_vis_contact"> Visuele inspectie actuele contactzone</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_vis_ondergrond"> Visuele inspectie ondergrond</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_bemonst_ja"> Bemonsteren asbestverdacht (>20mm)</label>
+    </div>
+    <div class="section-title" style="font-size:12px">Bemonsteren geïnspecteerde grond als geroerd monster</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_2018_per_gat"> Per gat of sleuf</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_meng5"> Mengmonster per 5 gaten (verkennend)</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_mengRE"> Mengmonster per RE (nader)</label>
+    </div>
+    <div class="check-grid" style="margin-top:8px">
+      <label class="check-item"><input type="checkbox" id="f_2018_handmatig" checked> Graven handmatig</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_machinaal"> Graven machinaal (minikraan)</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_fotos"> Foto's maken</label>
+    </div>
+
+    <div class="form-grid" style="margin-top:12px">
+      <div class="form-group"><label>Codering geroerde grondmonsters</label><input id="f_2018_cod_grond" value="A01, A02, etc"></div>
+      <div class="form-group"><label>Codering grondmengmonsters</label><input id="f_2018_cod_meng" value="MMA01, MMA02, etc"></div>
+      <div class="form-group"><label>Codering verzamelmonsters asbest</label><input id="f_2018_cod_asbest" value="AVM01, AVM02, etc"></div>
+      <div class="form-group"><label>Inmeting</label>
+        <select id="f_2018_inmeting">
+          <option value="meetlint">Meetlint (inmeetschets) - 1m</option>
+          <option value="gps">RTK-GPS (Topcon) - <2cm</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-title">Benodigde apparatuur</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_2018_app_schets" checked> Werkschets/tekening</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_formulier" checked> Monsternemingsformulier(en)</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_folie" checked> Folie</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_vocht" checked> Bodemvochtmeter</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_spade" checked> Spade</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_hark" checked> Hark</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_tablet"> Tablet</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_camera"> Digitale fotocamera</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_zeven"> Grove zeven 40/20mm</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_boor"> Grondboor ≥12cm</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_schep"> Monsterschep</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_meetlint"> Meetlint</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_zakken"> Hersluitbare plastic zakken</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_emmers"> Afsluitbare emmers >10L</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_balans"> Grove balans (60kg)</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_app_schouwbak"> Schouwbak</label>
+    </div>
+  </div>
+</div>
+
+<!-- Protocol 2100 -->
+<div class="card protocol-section" id="section_2100" style="display:none">
+  <div class="card-head" onclick="toggleCard(this)">
+    🏗️ Protocol 2100 — Mechanisch boren
+    <span class="toggle">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">Uitvoeringsplan</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Aantal boringen</label><input id="f_2100_aantal" type="number" placeholder="Aantal"></div>
+      <div class="form-group"><label>Diepte (m-mv)</label><input id="f_2100_diepte" placeholder="Bijv. 25"></div>
+      <div class="form-group"><label>Boormethode</label>
+        <select id="f_2100_methode">
+          <option>Pulsboren</option>
+          <option>Spoelboren</option>
+          <option>Avegaarboren</option>
+          <option>Zuigboren</option>
+          <option>Sonisch boren</option>
+          <option>Anders</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Boordiameter (mm)</label><input id="f_2100_diameter" type="number" placeholder="Bijv. 168"></div>
+      <div class="form-group"><label>Peilbuismateriaal</label>
+        <select id="f_2100_materiaal">
+          <option>PVC</option>
+          <option>HDPE</option>
+          <option>RVS</option>
+          <option>Anders</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Filterstelling (m-mv)</label><input id="f_2100_filter" placeholder="Bijv. 8-10"></div>
+    </div>
+    <div class="section-title">Toelichting</div>
+    <div class="form-group form-full">
+      <textarea id="f_2100_toelichting" rows="3" placeholder="Boormethode, bijzonderheden..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Seriecodes & Paraaf -->
+<div class="card">
+  <div class="card-head" onclick="toggleCard(this)">
+    📦 Seriecodes verpakking & Paraaf
+    <span class="toggle">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="form-grid">
+      <div class="form-group"><label>PVC/HDPE geperforeerd</label><input id="f_serie_perf" placeholder="Seriecode"></div>
+      <div class="form-group"><label>PVC/HDPE blind</label><input id="f_serie_blind" placeholder="Seriecode"></div>
+      <div class="form-group"><label>PE-slang</label><input id="f_serie_pe" placeholder="Seriecode"></div>
+      <div class="form-group"><label>Siliconenslang</label><input id="f_serie_siliconen" placeholder="Seriecode"></div>
+      <div class="form-group"><label>Bentoniet (zwelklei)</label><input id="f_serie_bentoniet" placeholder="Seriecode"></div>
+      <div class="form-group"><label>Filtergrind</label><input id="f_serie_filtergrind" placeholder="Seriecode"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Kwalibo verklaring -->
+<div class="card">
+  <div class="card-head" onclick="toggleCard(this)">
+    ✍️ Kwalibo-verklaring & Ondertekening
+    <span class="toggle">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="form-grid">
+      <div class="form-group"><label>Naam veldwerker 1</label><input id="f_kwal_naam1" placeholder="Naam"></div>
+      <div class="form-group"><label>Functie</label>
+        <select id="f_kwal_functie1"><option>Gecertificeerd veldwerker</option><option>Veldwerker in opleiding</option></select>
+      </div>
+      <div class="form-group"><label>Bedrijf</label><input id="f_kwal_bedrijf1" value="Ground Research"></div>
+      <div class="form-group"><label>Datum uitvoering</label><input id="f_kwal_datum1" type="date"></div>
+      <div class="form-group"><label>Naam veldwerker 2</label><input id="f_kwal_naam2" placeholder="Naam (optioneel)"></div>
+      <div class="form-group"><label>Functie</label>
+        <select id="f_kwal_functie2"><option>Gecertificeerd veldwerker</option><option>Veldwerker in opleiding</option></select>
+      </div>
+      <div class="form-group"><label>Bedrijf</label><input id="f_kwal_bedrijf2" value="Ground Research"></div>
+      <div class="form-group"><label>Datum uitvoering</label><input id="f_kwal_datum2" type="date"></div>
+    </div>
+    <div class="section-title">Protocollen uitgevoerd</div>
+    <div class="check-grid">
+      <label class="check-item"><input type="checkbox" id="f_kwal_2001"> Protocol 2001</label>
+      <label class="check-item"><input type="checkbox" id="f_kwal_2002"> Protocol 2002</label>
+      <label class="check-item"><input type="checkbox" id="f_kwal_2003"> Protocol 2003</label>
+      <label class="check-item"><input type="checkbox" id="f_kwal_2018"> Protocol 2018</label>
+    </div>
+  </div>
+</div>
+
+<!-- Action buttons -->
+<div class="card">
+  <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;padding:20px">
+    <button class="btn btn-primary" onclick="generatePDF()">📄 Genereer PDF</button>
+    <button class="btn btn-success" onclick="saveToStorage()">💾 Opslaan</button>
+    <button class="btn btn-orange" onclick="loadFromStorage()">📂 Laden</button>
+    <button class="btn btn-danger" onclick="clearAll()">🗑️ Wis alles</button>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// === STATE ===
+let currentProtocol = '2001';
+
+// === UI HELPERS ===
+function toggleCard(el) {
+  const body = el.nextElementSibling;
+  const toggle = el.querySelector('.toggle');
+  body.classList.toggle('collapsed');
+  toggle.classList.toggle('collapsed');
+}
+
+function selectProtocol(proto, btn) {
+  currentProtocol = proto;
+  document.querySelectorAll('.proto-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['2001','2002','2018','2100'].forEach(p => {
+    const sec = document.getElementById('section_' + p);
+    if (sec) sec.style.display = p === proto ? '' : 'none';
+  });
+}
+
+function showStatus(msg, type) {
+  const bar = document.getElementById('statusBar');
+  bar.textContent = msg;
+  bar.className = 'status-bar ' + type;
+  setTimeout(() => { bar.className = 'status-bar'; }, 5000);
+}
+
+function delRow(btn) {
+  const tr = btn.closest('tr');
+  const tbody = tr.closest('tbody');
+  if (tbody.children.length > 1) tr.remove();
+}
+
+function addRow2001() {
+  const tbody = document.querySelector('#table2001 tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td><input data-field="terreindeel"></td><td><input data-field="boringen"></td><td><input data-field="peilbuizen"></td><td><input data-field="codering"></td><td><input data-field="analysepakket"></td><td><input data-field="opmerkingen"></td><td><button class="del-row" onclick="delRow(this)">✕</button></td>';
+  tbody.appendChild(tr);
+}
+
+function addRow2002() {
+  const tbody = document.querySelector('#table2002 tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td><input data-field="peilbuis"></td><td><input data-field="filterstelling"></td><td><select data-field="toestroming"><option>Goed</option><option>Slecht</option></select></td><td><input data-field="analysepakket"></td><td><select data-field="spoed"><option>Nee</option><option>Ja</option></select></td><td><input data-field="veldmetingen" placeholder="O2, redox, Cl-, Fe"></td><td><input data-field="opmerkingen"></td><td><button class="del-row" onclick="delRow(this)">✕</button></td>';
+  tbody.appendChild(tr);
+}
+
+// === DOCX PARSING ===
+function setupDropzone() {
+  const dz = document.getElementById('dropZone');
+  const fi = document.getElementById('fileInput');
+  
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('dragover');
+    if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
+  });
+  fi.addEventListener('change', e => { if (e.target.files.length) processFile(e.target.files[0]); });
+}
+
+async function processFile(file) {
+  if (!file.name.toLowerCase().endsWith('.docx')) {
+    showStatus('Alleen DOCX-bestanden worden ondersteund', 'error');
+    return;
+  }
+  showStatus('DOCX wordt verwerkt...', 'info');
+  try {
+    const ab = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer: ab });
+    const text = result.value;
+    parseDocx(text);
+  } catch (err) {
+    showStatus('Fout bij verwerking: ' + err.message, 'error');
+  }
+}
+
+function parseDocx(text) {
+  // Normalize whitespace
+  const t = text.replace(/\r\n/g, '\n').replace(/\t+/g, '\t');
+  const lines = t.split('\n');
+  let parsed = 0;
+
+  function find(pattern, flags) {
+    const re = new RegExp(pattern, flags || 'i');
+    const m = t.match(re);
+    return m ? (m[1] || m[0]).trim() : '';
+  }
+
+  function findAfter(label) {
+    // Find text after a label on the same or next line
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].toLowerCase().includes(label.toLowerCase())) {
+        // Check same line after label
+        const idx = lines[i].toLowerCase().indexOf(label.toLowerCase());
+        const after = lines[i].substring(idx + label.length).replace(/^[\s:]+/, '').trim();
+        if (after && after.length > 1 && !after.startsWith('(')) return after;
+        // Check next non-empty line
+        for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+          const l = lines[j].trim();
+          if (l && l.length > 1 && !l.startsWith('(') && !l.startsWith('Bijvoorbeeld')) return l;
+        }
+      }
+    }
+    return '';
+  }
+
+  function setVal(id, val) {
+    const el = document.getElementById(id);
+    if (el && val) {
+      el.value = val;
+      parsed++;
+    }
+  }
+
+  function setCheck(id, condition) {
+    const el = document.getElementById(id);
+    if (el && condition) {
+      el.checked = true;
+      parsed++;
+    }
+  }
+
+  const tl = t.toLowerCase();
+
+  // Algemene gegevens
+  setVal('f_projectnaam', findAfter('Projectnaam TerraIndex'));
+  
+  // Projectnummer — look for the line after "Projectnummer TerraIndex"
+  let projNr = findAfter('Projectnummer TerraIndex');
+  if (!projNr) projNr = findAfter('Projectnummer');
+  setVal('f_projectnummer', projNr);
+  
+  setVal('f_projectleider', findAfter('Projectleider volgens Oracle') || findAfter('Projectleider'));
+  
+  let contactBrl = findAfter('Contactpers. kantoor');
+  if (!contactBrl) contactBrl = findAfter('Contactpersoon kantoor');
+  setVal('f_contactpersoon_brl', contactBrl);
+  
+  setVal('f_klantnaam', findAfter('Klantnaam'));
+  setVal('f_locatie', findAfter('Onderzoekslocatie'));
+  setVal('f_contact_locatie', findAfter('Contactpersoon op locatie'));
+  setVal('f_veldwerkers', findAfter('Veldwerker(s)') || findAfter('Veldwerkers'));
+  setVal('f_assistent', findAfter('Veldwerker in opleiding'));
+  setVal('f_uitvoeringsperiode', findAfter('Uitvoeringsperiode'));
+  setVal('f_laboratorium', findAfter('Laboratorium'));
+  setVal('f_tijdsafspraak', findAfter('Tijdsafspraak'));
+  setVal('f_tijdsbesteding', findAfter('Tijdsbesteding'));
+
+  // Spoed
+  if (tl.includes('spoed') && (tl.includes('ja') || tl.match(/spoed[^.]*ja/))) {
+    setVal('f_spoed_lab', 'ja');
+  }
+
+  // Type onderzoek
+  setCheck('f_nen5720', tl.includes('nen 5720') || tl.includes('nen5720'));
+  setCheck('f_nen5740', tl.includes('nen 5740') || tl.includes('nen5740'));
+  setCheck('f_nen5707', tl.includes('nen 5707') || tl.includes('nen5707'));
+  setCheck('f_nen5897', tl.includes('nen 5897') || tl.includes('nen5897'));
+  setCheck('f_nta5755', tl.includes('nta 5755') || tl.includes('nta5755'));
+  setCheck('f_crow210', tl.includes('crow 210'));
+  setCheck('f_ap04', tl.includes('ap04') || tl.includes('protocol 1001'));
+  setCheck('f_sikb6000', tl.includes('sikb 6000'));
+  setCheck('f_sikb7000', tl.includes('sikb 7000'));
+
+  // Formulieren
+  setCheck('f_form2001', tl.includes('formulier protocol 2001') || tl.includes('protocol 2001'));
+  setCheck('f_form2002', tl.includes('formulier protocol 2002') || tl.includes('protocol 2002'));
+  setCheck('f_form2003', tl.includes('formulier protocol 2003') || tl.includes('protocol 2003'));
+  setCheck('f_form2018', tl.includes('formulier protocol 2018') || tl.includes('protocol 2018'));
+
+  // Werkomschrijving
+  let werkOmschr = '';
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].toLowerCase().includes('werkomschrijving')) {
+      // Skip instruction lines
+      for (let j = i + 1; j < Math.min(i + 6, lines.length); j++) {
+        const l = lines[j].trim();
+        if (l && !l.startsWith('Aanleiding') && !l.startsWith('(') && l.length > 5) {
+          werkOmschr += (werkOmschr ? '\n' : '') + l;
+        }
+      }
+      break;
+    }
+  }
+  setVal('f_werkomschrijving', werkOmschr);
+
+  // Werkvergunning
+  // Check context around "Werkvergunning"
+  if (tl.includes('werkvergunning')) {
+    // Default nee unless explicitly ja
+  }
+
+  // Betreding
+  setCheck('f_betr_portier', tl.includes('melden bij portier'));
+  setCheck('f_betr_hekwerk', tl.includes('afgesloten hekwerk'));
+  setCheck('f_betr_vrij', tl.includes('vrije toegang'));
+
+  // Werkomgeving
+  setCheck('f_wo_bedrijf', tl.includes('bedrijfslocatie'));
+  setCheck('f_wo_woonwijk', tl.includes('woonwijk') || tl.includes('binnenstedelijk'));
+  setCheck('f_wo_buiten', tl.includes('buitengebied'));
+  setCheck('f_wo_weg', tl.includes('naast een weg'));
+  setCheck('f_wo_water', tl.includes('naast een watergang'));
+  setCheck('f_wo_spoor', tl.includes('naast het spoor'));
+
+  // Toxische stoffen
+  setCheck('f_tox_asbest', tl.includes('asbest'));
+  setCheck('f_tox_metalen', tl.includes('zware metalen'));
+  setCheck('f_tox_olie', tl.includes('minerale olie'));
+  setCheck('f_tox_pak', /\bpak\b/.test(tl));
+  setCheck('f_tox_pcb', /\bpcb\b/.test(tl));
+  setCheck('f_tox_ocb', /\bocb\b/.test(tl));
+  setCheck('f_tox_btexn', /\bbtexn\b/.test(tl));
+  setCheck('f_tox_vocl', /\bvocl\b/.test(tl));
+  setCheck('f_tox_pfas', /\bpfas\b/.test(tl));
+  setCheck('f_tox_geen', tl.includes('geen verontreinigingen'));
+
+  // PBM
+  setCheck('f_pbm_overall', tl.includes('overall'));
+  setCheck('f_pbm_handsch', tl.includes('werkhandschoenen'));
+  setCheck('f_pbm_laarzen', tl.includes('laarzen'));
+  setCheck('f_pbm_helm', tl.includes('helm'));
+  setCheck('f_pbm_bril', tl.includes('veiligheidsbril'));
+
+  // K&L
+  setCheck('f_kl_klic', tl.includes('klic'));
+  setCheck('f_oo_onverdacht', tl.includes('onverdacht'));
+
+  // Noodcontact
+  setVal('f_hvk', findAfter('Hogere veiligheidskundige'));
+  let ehbo = findAfter('Dichtstbijzijnde huisarts');
+  setVal('f_ehbo', ehbo);
+
+  // Protocol 2001 details
+  let boorInfo = findAfter('Boringen');
+  if (boorInfo) {
+    const row1 = document.querySelector('#table2001 tbody tr');
+    if (row1) {
+      const inputs = row1.querySelectorAll('input');
+      // Try to parse codering
+      let codering = findAfter('Codering');
+      let analysepakket = findAfter('Analysepakket');
+      if (codering) { inputs[3].value = codering; parsed++; }
+      if (analysepakket) { inputs[4].value = analysepakket; parsed++; }
+    }
+  }
+
+  // Verhardingen
+  let onverhard = findAfter('boringen onverhard');
+  if (onverhard && !isNaN(parseInt(onverhard))) setVal('f_2001_onverhard', parseInt(onverhard));
+
+  // Peilbuisafwerking
+  setCheck('f_2001_schutkoker', tl.includes('schutkoker'));
+  setCheck('f_2001_straatpot', tl.includes('straatpot'));
+  setCheck('f_2001_punaise', tl.includes('punaise'));
+
+  // Bemonstering
+  setCheck('f_2001_volledig', tl.includes('volledig profiel'));
+  setCheck('f_2001_representatief', tl.includes('representatieve lagen'));
+
+  // Inmeting
+  setCheck('f_2001_meetlint', tl.includes('meetwiel') || tl.includes('meetlint'));
+  setCheck('f_2001_gps', tl.includes('rtk-gps') || tl.includes('topcon'));
+
+  // Protocol 2018 toelichting
+  let toel2018 = '';
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].toLowerCase().includes('terreininspectie en toelichting')) {
+      for (let j = i + 1; j < Math.min(i + 6, lines.length); j++) {
+        const l = lines[j].trim();
+        if (l && !l.startsWith('Aanleiding') && !l.startsWith('(') && l.length > 5) {
+          toel2018 += (toel2018 ? '\n' : '') + l;
+        }
+      }
+      break;
+    }
+  }
+  setVal('f_2018_toelichting', toel2018);
+
+  // Kwalibo
+  let veldwerkerNaam = document.getElementById('f_veldwerkers').value;
+  if (veldwerkerNaam) {
+    // Clean up "e.a." suffix
+    let naam1 = veldwerkerNaam.replace(/\s*e\.a\.?\s*$/, '').trim();
+    setVal('f_kwal_naam1', naam1);
+  }
+  setVal('f_kwal_bedrijf1', 'Ground Research');
+
+  // Set today's date for kwalibo
+  const today = new Date().toISOString().split('T')[0];
+  setVal('f_kwal_datum1', today);
+
+  // Auto-check kwalibo protocols
+  if (document.getElementById('f_form2001').checked) document.getElementById('f_kwal_2001').checked = true;
+  if (document.getElementById('f_form2002').checked) document.getElementById('f_kwal_2002').checked = true;
+  if (document.getElementById('f_form2003').checked) document.getElementById('f_kwal_2003').checked = true;
+  if (document.getElementById('f_form2018').checked) document.getElementById('f_kwal_2018').checked = true;
+
+  // Show parse result
+  const pr = document.getElementById('parseResult');
+  pr.style.display = 'block';
+  pr.innerHTML = `<b>✅ DOCX verwerkt</b> — <span class="parse-count">${parsed} velden</span> automatisch ingevuld. Controleer en vul ontbrekende velden handmatig aan.`;
+  showStatus(`DOCX succesvol verwerkt — ${parsed} velden ingevuld`, 'success');
+}
+
+// === LOCAL STORAGE ===
+function getAllFormData() {
+  const data = {};
+  // All inputs
+  document.querySelectorAll('input[id^="f_"], select[id^="f_"], textarea[id^="f_"]').forEach(el => {
+    if (el.type === 'checkbox') data[el.id] = el.checked;
+    else data[el.id] = el.value;
+  });
+  // Table data
+  data._table2001 = getTableData('table2001');
+  data._table2002 = getTableData('table2002');
+  data._currentProtocol = currentProtocol;
+  return data;
+}
+
+function getTableData(tableId) {
+  const rows = [];
+  document.querySelectorAll(`#${tableId} tbody tr`).forEach(tr => {
+    const row = {};
+    tr.querySelectorAll('input, select').forEach(el => {
+      row[el.getAttribute('data-field')] = el.value;
+    });
+    rows.push(row);
+  });
+  return rows;
+}
+
+function setAllFormData(data) {
+  Object.keys(data).forEach(key => {
+    if (key.startsWith('_')) return;
+    const el = document.getElementById(key);
+    if (!el) return;
+    if (el.type === 'checkbox') el.checked = data[key];
+    else el.value = data[key];
+  });
+  // Restore tables
+  if (data._table2001) restoreTable('table2001', data._table2001, addRow2001);
+  if (data._table2002) restoreTable('table2002', data._table2002, addRow2002);
+  if (data._currentProtocol) {
+    const btn = document.querySelector(`.proto-btn[onclick*="${data._currentProtocol}"]`);
+    if (btn) selectProtocol(data._currentProtocol, btn);
+  }
+}
+
+function restoreTable(tableId, rows, addFn) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  // Clear all rows except first
+  while (tbody.children.length > 1) tbody.removeChild(tbody.lastChild);
+  rows.forEach((row, i) => {
+    if (i > 0) addFn();
+    const tr = tbody.children[i];
+    if (tr) {
+      tr.querySelectorAll('input, select').forEach(el => {
+        const field = el.getAttribute('data-field');
+        if (field && row[field] !== undefined) el.value = row[field];
+      });
+    }
+  });
+}
+
+function saveToStorage() {
+  const data = getAllFormData();
+  localStorage.setItem('veldwerk_brl_data', JSON.stringify(data));
+  showStatus('✅ Gegevens opgeslagen in browser', 'success');
+}
+
+function loadFromStorage() {
+  const raw = localStorage.getItem('veldwerk_brl_data');
+  if (!raw) { showStatus('Geen opgeslagen gegevens gevonden', 'error'); return; }
+  try {
+    setAllFormData(JSON.parse(raw));
+    showStatus('✅ Gegevens geladen', 'success');
+  } catch (e) {
+    showStatus('Fout bij laden: ' + e.message, 'error');
+  }
+}
+
+function clearAll() {
+  if (!confirm('Alle velden wissen?')) return;
+  document.querySelectorAll('input[id^="f_"], textarea[id^="f_"]').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else if (el.type === 'date') el.value = '';
+    else el.value = '';
+  });
+  document.querySelectorAll('select[id^="f_"]').forEach(el => el.selectedIndex = 0);
+  document.getElementById('f_pbm_basis').checked = true;
+  document.getElementById('parseResult').style.display = 'none';
+  showStatus('Alle velden gewist', 'info');
+}
+
+// === PDF GENERATION ===
+function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const W = 210, H = 297;
+  const M = 15; // margin
+  const CW = W - 2 * M; // content width
+  let y = 0;
+
+  const BLUE = [30, 58, 95];
+  const WHITE = [255, 255, 255];
+  const GRAY = [245, 245, 245];
+  const LGRAY = [220, 220, 220];
+
+  function newPage() {
+    doc.addPage();
+    y = M;
+  }
+
+  function checkPage(needed) {
+    if (y + needed > H - 20) { newPage(); return true; }
+    return false;
+  }
+
+  // === HEADER ===
+  function drawHeader(title) {
+    doc.setFillColor(...BLUE);
+    doc.rect(0, 0, W, 28, 'F');
+    doc.setTextColor(...WHITE);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Ground Research BV', M, 10);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Vrijheidweg 45, 1521RP Wormerveer | BRL SIKB 2000/2100/11000 (K41104/10)', M, 16);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title, M, 24);
+    doc.setTextColor(0, 0, 0);
+    y = 34;
+  }
+
+  // === TABLE HELPERS ===
+  function drawSectionTitle(title) {
+    checkPage(12);
+    doc.setFillColor(...BLUE);
+    doc.rect(M, y, CW, 7, 'F');
+    doc.setTextColor(...WHITE);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title, M + 3, y + 5);
+    doc.setTextColor(0, 0, 0);
+    y += 9;
+  }
+
+  function drawField(label, value, width) {
+    width = width || CW;
+    checkPage(10);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...BLUE);
+    doc.text(label, M, y + 3);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(String(value || '—'), M + 50, y + 3);
+    doc.setDrawColor(...LGRAY);
+    doc.line(M, y + 5, M + width, y + 5);
+    y += 7;
+  }
+
+  function drawFieldRow(fields) {
+    // fields = [{label, value, width}]
+    checkPage(10);
+    let x = M;
+    fields.forEach(f => {
+      const w = f.width || (CW / fields.length);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...BLUE);
+      doc.text(f.label, x, y + 3);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      const valX = x + Math.min(40, w * 0.45);
+      doc.text(String(f.value || '—'), valX, y + 3);
+      x += w;
+    });
+    doc.setDrawColor(...LGRAY);
+    doc.line(M, y + 5, M + CW, y + 5);
+    y += 7;
+  }
+
+  function drawCheckField(label, checked) {
+    checkPage(6);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    // Checkbox
+    doc.setDrawColor(0,0,0);
+    doc.rect(M, y - 0.5, 3, 3);
+    if (checked) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('✓', M + 0.3, y + 2);
+      doc.setFont('helvetica', 'normal');
+    }
+    doc.text(label, M + 5, y + 2);
+    y += 5;
+  }
+
+  function drawCheckRow(items) {
+    // items = [{label, checked}] — render 3 per row
+    checkPage(6);
+    const colW = CW / 3;
+    let col = 0;
+    items.forEach((item, i) => {
+      if (col >= 3) { y += 5; col = 0; checkPage(6); }
+      const x = M + col * colW;
+      doc.setDrawColor(0,0,0);
+      doc.rect(x, y - 0.5, 3, 3);
+      if (item.checked) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.text('X', x + 0.5, y + 2);
+        doc.setFont('helvetica', 'normal');
+      }
+      doc.setFontSize(7);
+      doc.text(item.label, x + 5, y + 2);
+      col++;
+    });
+    y += 6;
+  }
+
+  function drawTable(headers, rows) {
+    checkPage(14);
+    const colW = CW / headers.length;
+    // Header
+    doc.setFillColor(...BLUE);
+    doc.rect(M, y, CW, 6, 'F');
+    doc.setTextColor(...WHITE);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    headers.forEach((h, i) => {
+      doc.text(h, M + i * colW + 2, y + 4);
+    });
+    y += 6;
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'normal');
+    
+    rows.forEach((row, ri) => {
+      checkPage(8);
+      if (ri % 2 === 1) {
+        doc.setFillColor(...GRAY);
+        doc.rect(M, y, CW, 6, 'F');
+      }
+      row.forEach((cell, ci) => {
+        doc.text(String(cell || ''), M + ci * colW + 2, y + 4);
+      });
+      doc.setDrawColor(...LGRAY);
+      doc.line(M, y + 6, M + CW, y + 6);
+      y += 6;
+    });
+    y += 2;
+  }
+
+  function drawSignatureBlock() {
+    checkPage(35);
+    drawSectionTitle('PARAAF VOOR ACCEPTATIE');
+    
+    const sigW = CW / 3;
+    const labels = ['Veldwerker\n(bij start veldwerk)', 'Veldwerker\n(na afronding)', 'BRL-projectleider\n(na overdracht)'];
+    labels.forEach((lbl, i) => {
+      const x = M + i * sigW;
+      doc.setDrawColor(...LGRAY);
+      doc.rect(x + 2, y, sigW - 4, 20);
+      doc.setFontSize(6);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(150, 150, 150);
+      const parts = lbl.split('\n');
+      parts.forEach((p, pi) => doc.text(p, x + 4, y + 4 + pi * 3));
+      doc.setTextColor(0, 0, 0);
+      // Date line
+      doc.setFontSize(6);
+      doc.text('Datum: ___/___/______', x + 4, y + 17);
+    });
+    y += 24;
+  }
+
+  function drawKwaliboSection() {
+    checkPage(50);
+    drawSectionTitle('KWALIBO-VERKLARING ONAFHANKELIJKHEID');
+    
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    const verklaring = 'De hieronder genoemde medewerker verklaart dat het milieukundig veldwerk onafhankelijk van de opdrachtgever is uitgevoerd conform de eisen van de BRL SIKB 2000 en de daarbij horende protocollen.';
+    const lines = doc.splitTextToSize(verklaring, CW);
+    doc.text(lines, M, y + 3);
+    y += lines.length * 3.5 + 4;
+
+    // Veldwerker 1
+    const naam1 = gv('f_kwal_naam1');
+    const functie1 = gv('f_kwal_functie1');
+    const bedrijf1 = gv('f_kwal_bedrijf1');
+    const datum1 = gv('f_kwal_datum1');
+
+    if (naam1) {
+      drawFieldRow([
+        { label: 'Naam:', value: naam1 },
+        { label: 'Functie:', value: functie1 },
+        { label: 'Bedrijf:', value: bedrijf1 }
+      ]);
+      drawFieldRow([
+        { label: 'Datum uitvoering:', value: datum1 },
+        { label: 'Datum ondertekening:', value: new Date().toLocaleDateString('nl-NL') },
+        { label: 'Ondertekening:', value: '________________' }
+      ]);
+
+      // Protocols
+      const protos = [];
+      if (gc('f_kwal_2001')) protos.push('2001');
+      if (gc('f_kwal_2002')) protos.push('2002');
+      if (gc('f_kwal_2003')) protos.push('2003');
+      if (gc('f_kwal_2018')) protos.push('2018');
+      drawField('Protocollen:', protos.join(', ') || '—');
+    }
+
+    // Veldwerker 2
+    const naam2 = gv('f_kwal_naam2');
+    if (naam2) {
+      y += 3;
+      drawFieldRow([
+        { label: 'Naam:', value: naam2 },
+        { label: 'Functie:', value: gv('f_kwal_functie2') },
+        { label: 'Bedrijf:', value: gv('f_kwal_bedrijf2') }
+      ]);
+      drawFieldRow([
+        { label: 'Datum uitvoering:', value: gv('f_kwal_datum2') },
+        { label: 'Datum ondertekening:', value: '___/___/______' },
+        { label: 'Ondertekening:', value: '________________' }
+      ]);
+    }
+  }
+
+  function drawSeriecodes() {
+    checkPage(30);
+    drawSectionTitle('SERIECODES VERPAKKING VERBRUIKT MATERIAAL');
+    drawFieldRow([
+      { label: 'PVC/HDPE geperforeerd:', value: gv('f_serie_perf') },
+      { label: 'PVC/HDPE blind:', value: gv('f_serie_blind') }
+    ]);
+    drawFieldRow([
+      { label: 'PE-slang:', value: gv('f_serie_pe') },
+      { label: 'Siliconenslang:', value: gv('f_serie_siliconen') }
+    ]);
+    drawFieldRow([
+      { label: 'Bentoniet:', value: gv('f_serie_bentoniet') },
+      { label: 'Filtergrind:', value: gv('f_serie_filtergrind') }
+    ]);
+  }
+
+  // Helper: get value
+  function gv(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+  function gc(id) { const el = document.getElementById(id); return el ? el.checked : false; }
+
+  // === PAGE 1: ALGEMEEN ===
+  drawHeader('VELDWERKFORMULIER BRL SIKB 2000 — ' + (currentProtocol === '2001' ? 'Protocol 2001' : currentProtocol === '2002' ? 'Protocol 2002' : currentProtocol === '2018' ? 'Protocol 2018' : 'Protocol 2100'));
+
+  drawSectionTitle('ALGEMENE PROJECTGEGEVENS');
+  drawFieldRow([
+    { label: 'Projectnaam:', value: gv('f_projectnaam') },
+    { label: 'Projectnummer:', value: gv('f_projectnummer') }
+  ]);
+  drawFieldRow([
+    { label: 'Projectleider:', value: gv('f_projectleider') },
+    { label: 'Contact BRL:', value: gv('f_contactpersoon_brl') }
+  ]);
+  drawFieldRow([
+    { label: 'Klantnaam:', value: gv('f_klantnaam') },
+    { label: 'Locatie:', value: gv('f_locatie') }
+  ]);
+  drawFieldRow([
+    { label: 'Veldwerker(s):', value: gv('f_veldwerkers') },
+    { label: 'Assistent:', value: gv('f_assistent') }
+  ]);
+  drawFieldRow([
+    { label: 'Uitvoeringsperiode:', value: gv('f_uitvoeringsperiode') },
+    { label: 'Laboratorium:', value: gv('f_laboratorium') }
+  ]);
+  drawFieldRow([
+    { label: 'Spoed lab:', value: gv('f_spoed_lab') },
+    { label: 'Werkvergunning:', value: gv('f_werkvergunning') }
+  ]);
+
+  // Type onderzoek
+  drawSectionTitle('TYPE ONDERZOEK');
+  const onderzoekTypes = [
+    { label: 'NEN 5720', checked: gc('f_nen5720') },
+    { label: 'NEN 5740', checked: gc('f_nen5740') },
+    { label: 'NEN 5707', checked: gc('f_nen5707') },
+    { label: 'NEN 5897', checked: gc('f_nen5897') },
+    { label: 'NTA 5755', checked: gc('f_nta5755') },
+    { label: 'CROW 210', checked: gc('f_crow210') },
+    { label: 'AP04/1001', checked: gc('f_ap04') },
+    { label: 'SIKB 6000', checked: gc('f_sikb6000') },
+    { label: 'SIKB 7000', checked: gc('f_sikb7000') }
+  ];
+  drawCheckRow(onderzoekTypes);
+
+  // Werkomschrijving
+  const werkOm = gv('f_werkomschrijving');
+  if (werkOm) {
+    drawSectionTitle('WERKOMSCHRIJVING');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    const wLines = doc.splitTextToSize(werkOm, CW);
+    wLines.forEach(l => { checkPage(5); doc.text(l, M, y + 3); y += 4; });
+    y += 2;
+  }
+
+  // BRL formulieren
+  drawSectionTitle('BRL-FORMULIEREN BIJ DEZE OPDRACHT');
+  drawCheckRow([
+    { label: 'Protocol 2001', checked: gc('f_form2001') },
+    { label: 'Protocol 2002', checked: gc('f_form2002') },
+    { label: 'Protocol 2003', checked: gc('f_form2003') },
+    { label: 'Protocol 2018', checked: gc('f_form2018') }
+  ]);
+
+  // === PAGE 2: V&G ===
+  newPage();
+  drawHeader('VOORINFORMATIE BODEMONDERZOEK EN V&G-MAATREGELEN');
+
+  drawSectionTitle('WERKOMGEVING');
+  drawCheckRow([
+    { label: 'Bedrijfslocatie', checked: gc('f_wo_bedrijf') },
+    { label: 'Woonwijk/binnenstedelijk', checked: gc('f_wo_woonwijk') },
+    { label: 'Buitengebied', checked: gc('f_wo_buiten') },
+    { label: 'Naast een weg', checked: gc('f_wo_weg') },
+    { label: 'Naast watergang', checked: gc('f_wo_water') },
+    { label: 'Naast het spoor', checked: gc('f_wo_spoor') }
+  ]);
+
+  drawSectionTitle('TE VERWACHTEN TOXISCHE STOFFEN');
+  drawCheckRow([
+    { label: 'Asbest [C]', checked: gc('f_tox_asbest') },
+    { label: 'Zware metalen', checked: gc('f_tox_metalen') },
+    { label: 'Minerale olie [C]', checked: gc('f_tox_olie') },
+    { label: 'PAK [CM]', checked: gc('f_tox_pak') },
+    { label: 'PCB', checked: gc('f_tox_pcb') },
+    { label: 'OCB', checked: gc('f_tox_ocb') },
+    { label: 'BTEXN [CMR]', checked: gc('f_tox_btexn') },
+    { label: 'VOCl [CR]', checked: gc('f_tox_vocl') },
+    { label: 'PFAS [R]', checked: gc('f_tox_pfas') },
+    { label: 'Geen verontreinigingen', checked: gc('f_tox_geen') }
+  ]);
+
+  drawSectionTitle('MEETINSTRUMENTEN');
+  drawCheckRow([
+    { label: 'PID-meter VOx', checked: gc('f_mi_pid_vox') },
+    { label: 'PID-meter benzeen', checked: gc('f_mi_pid_benz') },
+    { label: 'Explosiemeter (Ex/Ox)', checked: gc('f_mi_exox') },
+    { label: 'Bodemvochtmeter', checked: gc('f_mi_vocht') },
+    { label: 'CAT-scan', checked: gc('f_mi_cat') },
+    { label: 'H2S-pieper', checked: gc('f_mi_h2s') },
+    { label: 'Kwikdampmeter', checked: gc('f_mi_kwik') }
+  ]);
+
+  drawSectionTitle('PERSOONLIJKE BESCHERMINGSMIDDELEN');
+  drawCheckRow([
+    { label: 'Basisuitrusting CROW 400', checked: gc('f_pbm_basis') },
+    { label: 'Overall', checked: gc('f_pbm_overall') },
+    { label: 'Werkhandschoenen', checked: gc('f_pbm_handsch') },
+    { label: 'Laarzen', checked: gc('f_pbm_laarzen') },
+    { label: 'Helm', checked: gc('f_pbm_helm') },
+    { label: 'Veiligheidsbril', checked: gc('f_pbm_bril') },
+    { label: 'Gehoorbescherming', checked: gc('f_pbm_gehoor') },
+    { label: 'Saneringsoverall', checked: gc('f_pbm_sanoverall') },
+    { label: 'Halfgelaatsmasker', checked: gc('f_pbm_halfgelaat') },
+    { label: 'Volgelaatsmasker', checked: gc('f_pbm_volgelaat') },
+    { label: 'Filter ABEK-P3', checked: gc('f_pbm_abek') }
+  ]);
+
+  drawSectionTitle('KABELS & LEIDINGEN / OO');
+  drawCheckRow([
+    { label: 'KLIC-graafmelding', checked: gc('f_kl_klic') },
+    { label: 'Tekening opdrachtgever', checked: gc('f_kl_tekening') },
+    { label: 'OO verdacht', checked: gc('f_oo_verdacht') },
+    { label: 'OO onverdacht', checked: gc('f_oo_onverdacht') }
+  ]);
+
+  drawSectionTitle('CONTACT IN NOODSITUATIE');
+  drawField('Algemeen alarmnummer:', '112 (spoed en ziekenhuis)');
+  drawField('Hogere veiligheidskundige:', gv('f_hvk'));
+  drawField('Dichtstbijzijnde huisarts/EHBO:', gv('f_ehbo'));
+
+  const vgToel = gv('f_vg_toelichting');
+  if (vgToel) {
+    drawSectionTitle('TOELICHTING V&G');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    const vgLines = doc.splitTextToSize(vgToel, CW);
+    vgLines.forEach(l => { checkPage(5); doc.text(l, M, y + 3); y += 4; });
+    y += 2;
+  }
+
+  // === PAGE 3: START & AFRONDING ===
+  newPage();
+  drawHeader('FORMULIER START EN AFRONDING VELDWERKOPDRACHT');
+
+  drawSectionTitle('BIJ START WERKZAAMHEDEN (invullen milieutechnicus)');
+  const startItems = [
+    'Is de instructie duidelijk',
+    'Is de tekening duidelijk',
+    'Weet ik wat ik moet doen?',
+    'Weet ik hoe ik het ga doen?',
+    'Heb ik de juiste PBM\'s?',
+    'Ben ik hiervoor goed opgeleid en getraind?',
+    'Is de omgeving van mijn werkplek veilig?',
+    'Weet ik wat ik moet doen als iets fout loopt?'
+  ];
+  drawTable(['Controle', 'JA', 'NEE', 'NVT', 'TOELICHTING'],
+    startItems.map(item => [item, '☐', '☐', '☐', '']));
+
+  drawSectionTitle('BIJ AFRONDING WERKZAAMHEDEN (invullen milieutechnicus)');
+  const afrondItems = [
+    'Tenminste één geregistreerde veldwerker per tweetal',
+    'Conform BRL uitgevoerd',
+    'Gegevens in TerraIndex gezet',
+    'TerraIndex gecontroleerd',
+    'Veldwerkverslag volledig ingevuld',
+    'Bodemlagen over hele boordiepte bemonsterd'
+  ];
+  drawTable(['Controle', 'JA', 'NEE', 'NVT', 'TOELICHTING'],
+    afrondItems.map(item => [item, '☐', '☐', '☐', '']));
+
+  // === PAGE 4: PROTOCOL SPECIFIC ===
+  newPage();
+
+  if (currentProtocol === '2001') {
+    drawHeader('PROTOCOL 2001 — HANDBORINGEN EN PEILBUIZEN, GRONDMONSTERNAME');
+    
+    drawSectionTitle('UITVOERINGSPLAN');
+    const rows2001 = getTableData('table2001');
+    drawTable(
+      ['Terreindeel', 'Boringen', 'Met peilbuis', 'Codering', 'Analysepakket', 'Opmerkingen'],
+      rows2001.map(r => [r.terreindeel||'', r.boringen||'', r.peilbuizen||'', r.codering||'', r.analysepakket||'', r.opmerkingen||''])
+    );
+
+    drawSectionTitle('DETAILS VERHARDINGEN');
+    drawFieldRow([
+      { label: 'Onverhard:', value: gv('f_2001_onverhard') },
+      { label: 'Met puin:', value: gv('f_2001_puin') },
+      { label: 'Klinkers:', value: gv('f_2001_klinkers') }
+    ]);
+    drawField('Asfalt/beton (kernboring):', gv('f_2001_asfalt'));
+    
+    drawCheckRow([{ label: "Foto's maken", checked: gc('f_2001_fotos') }]);
+
+    drawSectionTitle('PEILBUISAFWERKING');
+    drawCheckRow([
+      { label: 'Schutkoker', checked: gc('f_2001_schutkoker') },
+      { label: 'Straatpot', checked: gc('f_2001_straatpot') },
+      { label: 'Punaise', checked: gc('f_2001_punaise') },
+      { label: 'Biologisch afbreekbaar', checked: gc('f_2001_bio') }
+    ]);
+
+    drawSectionTitle('BEMONSTERING');
+    drawCheckRow([
+      { label: 'Volledig profiel', checked: gc('f_2001_volledig') },
+      { label: 'Representatieve lagen', checked: gc('f_2001_representatief') }
+    ]);
+    drawField('Verwachte grondwaterstand (m-mv):', gv('f_2001_gwstand'));
+    drawField('Maaiveld-kopbuis meten:', gv('f_2001_kopbuis'));
+
+    drawSectionTitle('INMETING MEETPUNTEN');
+    drawCheckRow([
+      { label: 'Meetwiel/meetlint', checked: gc('f_2001_meetlint') },
+      { label: 'RTK-GPS (Topcon)', checked: gc('f_2001_gps') },
+      { label: 'Waterpassing', checked: gc('f_2001_waterpas') }
+    ]);
+    drawField('Benodigde nauwkeurigheid:', gv('f_2001_nauwkeurigheid'));
+
+    const toel2001 = gv('f_2001_toelichting');
+    if (toel2001) {
+      drawSectionTitle('TOELICHTING WERKZAAMHEDEN');
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+      const tl = doc.splitTextToSize(toel2001, CW);
+      tl.forEach(l => { checkPage(5); doc.text(l, M, y + 3); y += 4; });
+      y += 2;
+    }
+
+  } else if (currentProtocol === '2002') {
+    drawHeader('PROTOCOL 2002 — MONSTERNEMING GRONDWATER');
+
+    drawSectionTitle('BEMONSTERINGSPROTOCOL');
+    drawCheckRow([
+      { label: 'Protocol 2002 (NEN 5744:2023)', checked: gc('f_2002_prot2002') },
+      { label: 'NTA 8017:2016', checked: gc('f_2002_nta8017') },
+      { label: 'NEN 5744:2023 excl. troebelheid', checked: gc('f_2002_nen5744_excl') }
+    ]);
+
+    drawSectionTitle('INSTELLINGEN');
+    drawFieldRow([
+      { label: 'TerraIndex tablet:', value: gv('f_2002_terraindex') },
+      { label: 'Troebelheid >10 NTU:', value: gv('f_2002_troebel') }
+    ]);
+    drawFieldRow([
+      { label: 'Filter niet juist:', value: gv('f_2002_filter') },
+      { label: 'Analyses door:', value: gv('f_2002_analyses') }
+    ]);
+    drawFieldRow([
+      { label: 'Ref. grondwaterstand:', value: gv('f_2002_referentie') },
+      { label: 'Maaiveld-kopbuis:', value: gv('f_2002_kopbuis') }
+    ]);
+
+    drawSectionTitle('DETAILS PEILBUIZEN');
+    const rows2002 = getTableData('table2002');
+    drawTable(
+      ['Peilbuis', 'Filterstelling', 'Toestroming', 'Analysepakket', 'Spoed', 'Veldmetingen', 'Opmerkingen'],
+      rows2002.map(r => [r.peilbuis||'', r.filterstelling||'', r.toestroming||'', r.analysepakket||'', r.spoed||'', r.veldmetingen||'', r.opmerkingen||''])
+    );
+
+    const toel2002 = gv('f_2002_toelichting');
+    if (toel2002) {
+      drawSectionTitle('TOELICHTING WERKZAAMHEDEN');
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+      const tl = doc.splitTextToSize(toel2002, CW);
+      tl.forEach(l => { checkPage(5); doc.text(l, M, y + 3); y += 4; });
+      y += 2;
+    }
+
+  } else if (currentProtocol === '2018') {
+    drawHeader('PROTOCOL 2018 — MAAIVELDINSPECTIE EN MONSTERNEMING ASBEST IN BODEM');
+
+    const toel2018 = gv('f_2018_toelichting');
+    if (toel2018) {
+      drawSectionTitle('TERREININSPECTIE EN TOELICHTING');
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+      const tl = doc.splitTextToSize(toel2018, CW);
+      tl.forEach(l => { checkPage(5); doc.text(l, M, y + 3); y += 4; });
+      y += 2;
+    }
+
+    drawSectionTitle('UITVOERINGSPLAN');
+    drawFieldRow([
+      { label: 'Oppervlakte (m²):', value: gv('f_2018_opp') },
+      { label: 'Aantal RE\'s:', value: gv('f_2018_re') }
+    ]);
+    drawFieldRow([
+      { label: 'Gaten 0,5 m-mv:', value: gv('f_2018_gaten05') },
+      { label: 'Gaten 1,0 m-mv:', value: gv('f_2018_gaten10') }
+    ]);
+    drawFieldRow([
+      { label: 'Sleuven 0,5 m-mv:', value: gv('f_2018_sleuven05') },
+      { label: 'Sleuven ≤2,0 m:', value: gv('f_2018_sleuven20') }
+    ]);
+    drawField('Boringen (≥12cm):', gv('f_2018_boringen'));
+
+    drawSectionTitle('DETAILS MONSTERNEMING');
+    drawCheckRow([
+      { label: 'Visuele inspectie maaiveld', checked: gc('f_2018_vis_maaiveld') },
+      { label: 'Visuele inspectie contactzone', checked: gc('f_2018_vis_contact') },
+      { label: 'Visuele inspectie ondergrond', checked: gc('f_2018_vis_ondergrond') },
+      { label: 'Bemonsteren asbest >20mm', checked: gc('f_2018_bemonst_ja') },
+      { label: 'Per gat of sleuf', checked: gc('f_2018_per_gat') },
+      { label: 'Mengmonster per 5 gaten', checked: gc('f_2018_meng5') },
+      { label: 'Mengmonster per RE', checked: gc('f_2018_mengRE') },
+      { label: 'Graven handmatig', checked: gc('f_2018_handmatig') },
+      { label: 'Graven machinaal', checked: gc('f_2018_machinaal') },
+      { label: "Foto's maken", checked: gc('f_2018_fotos') }
+    ]);
+
+    drawFieldRow([
+      { label: 'Cod. grondmonsters:', value: gv('f_2018_cod_grond') },
+      { label: 'Cod. mengmonsters:', value: gv('f_2018_cod_meng') }
+    ]);
+    drawFieldRow([
+      { label: 'Cod. asbestmonsters:', value: gv('f_2018_cod_asbest') },
+      { label: 'Inmeting:', value: gv('f_2018_inmeting') }
+    ]);
+
+    drawSectionTitle('BENODIGDE APPARATUUR');
+    const appItems = [
+      { label: 'Werkschets/tekening', checked: gc('f_2018_app_schets') },
+      { label: 'Monsternemingsformulier', checked: gc('f_2018_app_formulier') },
+      { label: 'Folie', checked: gc('f_2018_app_folie') },
+      { label: 'Bodemvochtmeter', checked: gc('f_2018_app_vocht') },
+      { label: 'Spade', checked: gc('f_2018_app_spade') },
+      { label: 'Hark', checked: gc('f_2018_app_hark') },
+      { label: 'Tablet', checked: gc('f_2018_app_tablet') },
+      { label: 'Fotocamera', checked: gc('f_2018_app_camera') },
+      { label: 'Zeven 40/20mm', checked: gc('f_2018_app_zeven') },
+      { label: 'Grondboor ≥12cm', checked: gc('f_2018_app_boor') },
+      { label: 'Monsterschep', checked: gc('f_2018_app_schep') },
+      { label: 'Meetlint', checked: gc('f_2018_app_meetlint') },
+      { label: 'Plastic zakken', checked: gc('f_2018_app_zakken') },
+      { label: 'Emmers >10L', checked: gc('f_2018_app_emmers') },
+      { label: 'Balans 60kg', checked: gc('f_2018_app_balans') },
+      { label: 'Schouwbak', checked: gc('f_2018_app_schouwbak') }
+    ];
+    drawCheckRow(appItems);
+
+    // Monsternemingsformulier (leeg template)
+    checkPage(50);
+    newPage();
+    drawHeader('PROTOCOL 2018 — MONSTERNEMINGSFORMULIER ASBEST IN BODEM');
+    
+    drawSectionTitle('CONTROLE MONSTERNEMINGSPLAN NA TERREIN-INSPECTIE');
+    drawCheckRow([
+      { label: 'Monsternemingsplan niet gewijzigd', checked: false },
+      { label: 'Extra RE en gaten/sleuven', checked: false },
+      { label: 'Indeling RE gewijzigd', checked: false }
+    ]);
+
+    drawSectionTitle('OMSTANDIGHEDEN VISUELE INSPECTIE');
+    drawFieldRow([
+      { label: 'Datum:', value: '' },
+      { label: 'Tijdstip aanvang:', value: '' }
+    ]);
+    drawCheckRow([
+      { label: 'Gehele locatie', checked: false },
+      { label: 'Bedekking <25%', checked: false },
+      { label: 'Bedekking >25%', checked: false }
+    ]);
+    drawCheckRow([
+      { label: 'Zicht >50m', checked: false },
+      { label: 'Zicht <50m', checked: false },
+      { label: 'Geen neerslag', checked: false },
+      { label: 'Regen', checked: false }
+    ]);
+
+    drawSectionTitle('RESULTATEN MAAIVELD');
+    drawTable(
+      ['Oppervlakte (m²)', 'Type asbest', 'Inspectie-eff. (%)', 'Herkomst', 'Asbest >20mm (j/n)', 'Barcode verzamelmonster'],
+      [['', '', '', '', '☐ ja ☐ nee', '']]
+    );
+
+    drawSectionTitle('RESULTATEN BOVENGROND (ACTUELE CONTACTZONE)');
+    drawTable(
+      ['Codering', 'Bodemvocht (%)', 'Eff. (%)', 'Bodemlaag (m-mv)', 'Massa (kg)', '>20mm (kg)', '<20mm (kg)', 'Monster (kg)', 'Asbest >20mm'],
+      [['', '', '', '', '', '', '', '', '☐'], ['', '', '', '', '', '', '', '', '☐'], ['', '', '', '', '', '', '', '', '☐']]
+    );
+
+    drawSectionTitle('RESULTATEN ONDERGROND');
+    drawTable(
+      ['Codering meetpunt', 'Bodemvocht (%)', 'Diameter boor (cm)', 'Asbest >20mm (j/n)'],
+      [['', '', '', '☐'], ['', '', '', '☐']]
+    );
+
+  } else if (currentProtocol === '2100') {
+    drawHeader('PROTOCOL 2100 — MECHANISCH BOREN');
+
+    drawSectionTitle('UITVOERINGSPLAN');
+    drawFieldRow([
+      { label: 'Aantal boringen:', value: gv('f_2100_aantal') },
+      { label: 'Diepte (m-mv):', value: gv('f_2100_diepte') }
+    ]);
+    drawFieldRow([
+      { label: 'Boormethode:', value: gv('f_2100_methode') },
+      { label: 'Boordiameter (mm):', value: gv('f_2100_diameter') }
+    ]);
+    drawFieldRow([
+      { label: 'Peilbuismateriaal:', value: gv('f_2100_materiaal') },
+      { label: 'Filterstelling (m-mv):', value: gv('f_2100_filter') }
+    ]);
+
+    const toel2100 = gv('f_2100_toelichting');
+    if (toel2100) {
+      drawSectionTitle('TOELICHTING');
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+      const tl = doc.splitTextToSize(toel2100, CW);
+      tl.forEach(l => { checkPage(5); doc.text(l, M, y + 3); y += 4; });
+      y += 2;
+    }
+  }
+
+  // === SERIECODES & KWALIBO (on every protocol) ===
+  checkPage(40);
+  if (y > H - 80) newPage();
+  drawSeriecodes();
+  drawSignatureBlock();
+  
+  // Kwalibo on new page
+  newPage();
+  drawHeader('KWALIBO-VERKLARING ONAFHANKELIJKHEID');
+  
+  drawSectionTitle('PROJECTGEGEVENS');
+  drawFieldRow([
+    { label: 'Projectnaam:', value: gv('f_projectnaam') },
+    { label: 'Projectnummer:', value: gv('f_projectnummer') }
+  ]);
+
+  drawKwaliboSection();
+
+  // Footer on every page
+  const totalPages = doc.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Ground Research BV — BRL SIKB 2000 — ${gv('f_projectnaam') || 'Project'} — Pagina ${p}/${totalPages}`, M, H - 8);
+    doc.text(`Gegenereerd: ${new Date().toLocaleDateString('nl-NL')} ${new Date().toLocaleTimeString('nl-NL', {hour:'2-digit',minute:'2-digit'})}`, W - M - 50, H - 8);
+    doc.setTextColor(0, 0, 0);
+  }
+
+  // Save
+  const filename = `VWF_${currentProtocol}_${gv('f_projectnaam') || 'project'}_${new Date().toISOString().split('T')[0]}.pdf`;
+  doc.save(filename.replace(/[^a-zA-Z0-9_\-\.]/g, '_'));
+  showStatus(`✅ PDF gegenereerd: ${filename}`, 'success');
+}
+
+// === INIT ===
+setupDropzone();
+
+// Auto-load from storage on page load
+window.addEventListener('load', () => {
+  const raw = localStorage.getItem('veldwerk_brl_data');
+  if (raw) {
+    try {
+      setAllFormData(JSON.parse(raw));
+      showStatus('Vorige sessie automatisch geladen', 'info');
+    } catch(e) {}
+  }
+  // Set today's date if empty
+  const d1 = document.getElementById('f_kwal_datum1');
+  if (d1 && !d1.value) d1.value = new Date().toISOString().split('T')[0];
+});
+
+// Auto-save every 30 seconds
+setInterval(() => {
+  const data = getAllFormData();
+  localStorage.setItem('veldwerk_brl_data', JSON.stringify(data));
+}, 30000);
+</script>
+</body>
+</html>
