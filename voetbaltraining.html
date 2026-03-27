@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LSVV Trainingsplanner</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--green:#2e7d32;--green-dark:#1b5e20;--green-light:#4caf50;--bg:#f5f5f5;--card:#fff;--text:#212121;--text-light:#757575;--border:#e0e0e0;--shadow:0 2px 8px rgba(0,0,0,.12);--radius:12px}
+html,body{height:100%;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--green),var(--green-dark));color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;position:relative;z-index:100}
+.header h1{font-size:1.2rem;font-weight:700;letter-spacing:.5px}
+.header .subtitle{font-size:.7rem;opacity:.8;margin-top:2px}
+.header .logo{width:40px;height:40px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:var(--green)}
+/* TABS */
+.tab-bar{display:flex;background:#fff;border-bottom:2px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-btn{flex:1;min-width:0;padding:10px 4px;border:none;background:none;font-size:.65rem;font-weight:600;color:var(--text-light);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap;transition:.2s;position:relative}
+.tab-btn .tab-icon{font-size:1.2rem}
+.tab-btn.active{color:var(--green)}
+.tab-btn.active::after{content:'';position:absolute;bottom:-2px;left:10%;right:10%;height:3px;background:var(--green);border-radius:3px 3px 0 0}
+/* MAIN CONTENT */
+.main{height:calc(100vh - 110px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.tab-content{display:none;padding:16px;padding-bottom:80px}
+.tab-content.active{display:block}
+/* CARDS */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.card h3{font-size:1rem;margin-bottom:8px;color:var(--green-dark)}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;border:none;border-radius:var(--radius);font-size:.9rem;font-weight:600;cursor:pointer;transition:.2s;min-height:44px}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-dark)}
+.btn-secondary{background:#e8f5e9;color:var(--green)}
+.btn-danger{background:#ffebee;color:#c62828}
+.btn-small{padding:8px 14px;font-size:.8rem;min-height:36px}
+.btn-block{width:100%;justify-content:center}
+.btn-icon{width:44px;height:44px;padding:0;border-radius:50%}
+/* FORMS */
+input,select,textarea{width:100%;padding:12px;border:2px solid var(--border);border-radius:var(--radius);font-size:.9rem;font-family:inherit;transition:.2s;background:#fff}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)}
+label{display:block;font-size:.8rem;font-weight:600;color:var(--text-light);margin-bottom:4px;margin-top:12px}
+label:first-child{margin-top:0}
+textarea{resize:vertical;min-height:60px}
+/* CHIPS / FILTERS */
+.chip-bar{display:flex;gap:8px;overflow-x:auto;padding:4px 0;-webkit-overflow-scrolling:touch}
+.chip{padding:8px 16px;border-radius:20px;border:2px solid var(--border);background:#fff;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:.2s}
+.chip.active{background:var(--green);color:#fff;border-color:var(--green)}
+/* EXERCISE CARD */
+.ex-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:10px;cursor:pointer;transition:.2s;border-left:4px solid var(--green)}
+.ex-card:active{transform:scale(.98)}
+.ex-card .ex-cat{font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--green);margin-bottom:4px}
+.ex-card .ex-name{font-size:.95rem;font-weight:700;margin-bottom:4px}
+.ex-card .ex-meta{font-size:.75rem;color:var(--text-light);display:flex;gap:12px;flex-wrap:wrap}
+.ex-card .ex-desc{font-size:.8rem;color:#555;margin-top:6px;line-height:1.4}
+/* TRAINING EXERCISE ITEM */
+.train-ex{background:#fff;border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.08);padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;cursor:grab;border-left:4px solid var(--green-light)}
+.train-ex.dragging{opacity:.4;background:#e8f5e9}
+.train-ex .drag-handle{color:#bbb;font-size:1.2rem;cursor:grab;user-select:none;padding:4px}
+.train-ex .train-ex-body{flex:1;min-width:0}
+.train-ex .train-ex-name{font-weight:700;font-size:.85rem}
+.train-ex .train-ex-time{display:flex;align-items:center;gap:6px;margin-top:6px}
+.train-ex .train-ex-time input{width:60px;padding:6px;text-align:center}
+.train-ex .train-ex-notes{margin-top:6px}
+.train-ex .train-ex-notes textarea{min-height:40px;padding:8px;font-size:.8rem}
+.train-ex .remove-btn{color:#c62828;font-size:1.1rem;cursor:pointer;padding:4px}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:85vh;overflow-y:auto;padding:20px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-header h2{font-size:1.1rem}
+.modal-close{width:36px;height:36px;border:none;background:#eee;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+/* SEARCH */
+.search-bar{position:relative;margin-bottom:12px}
+.search-bar input{padding-left:40px}
+.search-bar::before{content:'🔍';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:1rem}
+/* BADGE */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:700;background:#e8f5e9;color:var(--green)}
+/* TOTAL TIME */
+.total-time{background:var(--green);color:#fff;padding:12px 16px;border-radius:var(--radius);text-align:center;font-size:1rem;font-weight:700;margin:12px 0;position:sticky;bottom:0}
+/* SEASON */
+.week-row{display:flex;align-items:stretch;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
+.week-num{min-width:50px;font-weight:700;font-size:.8rem;color:var(--green);display:flex;align-items:center;justify-content:center}
+.week-content{flex:1;min-width:0}
+.week-theme{font-size:.75rem;color:var(--text-light);margin-bottom:4px}
+.week-trainings{display:flex;flex-wrap:wrap;gap:4px}
+.week-training-chip{font-size:.7rem;background:#e8f5e9;color:var(--green-dark);padding:3px 8px;border-radius:8px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+/* CANVAS */
+.canvas-container{position:relative;width:100%;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.canvas-container canvas{width:100%;display:block;touch-action:none}
+.canvas-tools{display:flex;gap:6px;padding:8px;flex-wrap:wrap;background:#f9f9f9;border-top:1px solid var(--border)}
+.canvas-tools .tool-btn{padding:8px 12px;border:2px solid var(--border);border-radius:8px;background:#fff;font-size:.75rem;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:4px}
+.canvas-tools .tool-btn.active{border-color:var(--green);background:#e8f5e9;color:var(--green)}
+.field-select{display:flex;gap:8px;margin-bottom:8px}
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-light)}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:12px}
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:var(--radius);font-size:.85rem;z-index:2000;animation:fadeInUp .3s ease;pointer-events:none}
+@keyframes fadeInUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* SAVED TRAININGS LIST */
+.saved-training{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:10px;border-left:4px solid var(--green)}
+.saved-training .st-header{display:flex;justify-content:space-between;align-items:flex-start}
+.saved-training .st-title{font-weight:700;font-size:.95rem}
+.saved-training .st-meta{font-size:.75rem;color:var(--text-light);margin-top:2px}
+.saved-training .st-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+/* SEASON BLOCK */
+.block-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:10px;border-left:4px solid var(--green-light)}
+.block-card .block-theme{font-weight:700;font-size:.9rem;color:var(--green-dark)}
+.block-card .block-weeks{font-size:.75rem;color:var(--text-light);margin-top:2px}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+/* Export section */
+.export-section{margin-bottom:20px}
+.export-section h3{margin-bottom:12px}
+.export-actions{display:flex;flex-direction:column;gap:8px}
+/* Responsive */
+@media(min-width:768px){.main{max-width:700px;margin:0 auto}.tab-btn{font-size:.75rem}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">⚽</div>
+  <div>
+    <h1>LSVV Trainingsplanner</h1>
+    <div class="subtitle">MO13 &amp; JO10-4 • Langedijk</div>
+  </div>
+</div>
+
+<nav class="tab-bar">
+  <button class="tab-btn active" data-tab="planner"><span class="tab-icon">📋</span>Planner</button>
+  <button class="tab-btn" data-tab="database"><span class="tab-icon">📚</span>Oefeningen</button>
+  <button class="tab-btn" data-tab="field"><span class="tab-icon">⚽</span>Veld</button>
+  <button class="tab-btn" data-tab="season"><span class="tab-icon">📅</span>Seizoen</button>
+  <button class="tab-btn" data-tab="export"><span class="tab-icon">📤</span>Delen</button>
+</nav>
+
+<div class="main" id="mainContent">
+
+<!-- ===== PLANNER TAB ===== -->
+<div class="tab-content active" id="tab-planner">
+  <div id="plannerHome">
+    <button class="btn btn-primary btn-block" onclick="showNewTraining()" style="margin-bottom:16px">
+      ➕ Nieuwe Training
+    </button>
+    <h3 style="margin-bottom:12px">Opgeslagen trainingen</h3>
+    <div id="savedTrainings"></div>
+  </div>
+
+  <div id="plannerEdit" style="display:none">
+    <button class="btn btn-secondary btn-small" onclick="backToPlanner()" style="margin-bottom:12px">← Terug</button>
+    <div class="card">
+      <label>Datum</label>
+      <input type="date" id="trainDate">
+      <label>Team</label>
+      <select id="trainTeam">
+        <option value="MO13">MO13</option>
+        <option value="JO10-4">JO10-4</option>
+      </select>
+      <label>Thema</label>
+      <input type="text" id="trainTheme" placeholder="bijv. Positiespel, Afwerken...">
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0">
+      <h3>Oefeningen</h3>
+      <button class="btn btn-secondary btn-small" onclick="openExercisePicker()">➕ Toevoegen</button>
+    </div>
+    <div id="trainingExercises"></div>
+    <div class="total-time" id="totalTime">Totale tijd: 0 min</div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-primary btn-block" onclick="saveTraining()">💾 Opslaan</button>
+    </div>
+  </div>
+
+  <div id="plannerView" style="display:none">
+    <button class="btn btn-secondary btn-small" onclick="backToPlanner()" style="margin-bottom:12px">← Terug</button>
+    <div id="viewContent"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary btn-block" onclick="editTraining(viewingTrainingId)">✏️ Bewerken</button>
+      <button class="btn btn-secondary btn-block" onclick="printTraining(viewingTrainingId)">🖨️ Printen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DATABASE TAB ===== -->
+<div class="tab-content" id="tab-database">
+  <div class="search-bar">
+    <input type="text" id="dbSearch" placeholder="Zoek oefening..." oninput="renderDatabase()">
+  </div>
+  <div class="chip-bar" id="dbFilters" style="margin-bottom:12px"></div>
+  <button class="btn btn-primary btn-small" onclick="openAddExercise()" style="margin-bottom:12px">➕ Nieuwe oefening</button>
+  <div id="dbList"></div>
+</div>
+
+<!-- ===== FIELD TAB ===== -->
+<div class="tab-content" id="tab-field">
+  <div class="field-select">
+    <button class="chip active" onclick="setFieldType('full',this)">Heel veld</button>
+    <button class="chip" onclick="setFieldType('half',this)">Half veld</button>
+  </div>
+  <div class="canvas-container">
+    <canvas id="fieldCanvas" width="700" height="500"></canvas>
+    <div class="canvas-tools">
+      <button class="tool-btn active" data-tool="select" onclick="setTool('select',this)">👆 Selecteer</button>
+      <button class="tool-btn" data-tool="playerRed" onclick="setTool('playerRed',this)">🔴 Speler</button>
+      <button class="tool-btn" data-tool="playerBlue" onclick="setTool('playerBlue',this)">🔵 Speler</button>
+      <button class="tool-btn" data-tool="pass" onclick="setTool('pass',this)">➖ Pas</button>
+      <button class="tool-btn" data-tool="run" onclick="setTool('run',this)">⬜ Loop</button>
+      <button class="tool-btn" data-tool="dribble" onclick="setTool('dribble',this)">〰️ Dribbel</button>
+      <button class="tool-btn" data-tool="shot" onclick="setTool('shot',this)">➡️ Schot</button>
+      <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser',this)">🧹 Wis</button>
+    </div>
+    <div style="display:flex;gap:6px;padding:8px;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-small" onclick="undoCanvas()">↩️ Ongedaan</button>
+      <button class="btn btn-secondary btn-small" onclick="clearCanvas()">🗑️ Wissen</button>
+      <button class="btn btn-primary btn-small" onclick="saveCanvasPNG()">📸 PNG opslaan</button>
+      <button class="btn btn-secondary btn-small" onclick="openLinkDrawing()">🔗 Koppelen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SEASON TAB ===== -->
+<div class="tab-content" id="tab-season">
+  <button class="btn btn-primary btn-small" onclick="openAddBlock()" style="margin-bottom:12px">➕ Nieuw thema-blok</button>
+  <div id="seasonBlocks"></div>
+  <h3 style="margin:16px 0 8px">Weekoverzicht</h3>
+  <div class="card" style="padding:8px">
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <label style="margin:0;white-space:nowrap">Start week:</label>
+      <input type="number" id="seasonStartWeek" value="1" min="1" max="52" style="width:70px" onchange="renderSeasonWeeks()">
+      <label style="margin:0;white-space:nowrap">Aantal:</label>
+      <input type="number" id="seasonNumWeeks" value="20" min="1" max="52" style="width:70px" onchange="renderSeasonWeeks()">
+    </div>
+    <div id="seasonWeeks"></div>
+  </div>
+</div>
+
+<!-- ===== EXPORT TAB ===== -->
+<div class="tab-content" id="tab-export">
+  <div class="export-section">
+    <h3>📤 Exporteren</h3>
+    <div class="export-actions">
+      <button class="btn btn-primary btn-block" onclick="exportJSON()">💾 Export alles als JSON</button>
+      <button class="btn btn-secondary btn-block" onclick="exportTrainingPDF()">📄 Export training als PDF</button>
+    </div>
+  </div>
+  <div class="export-section">
+    <h3>📥 Importeren</h3>
+    <div class="export-actions">
+      <button class="btn btn-secondary btn-block" onclick="document.getElementById('importFile').click()">📂 Importeer JSON</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+    </div>
+  </div>
+  <div class="export-section">
+    <h3>⚠️ Gegevens</h3>
+    <div class="export-actions">
+      <button class="btn btn-danger btn-block" onclick="resetData()">🗑️ Alle data wissen</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalExPicker">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Oefening toevoegen</h2>
+      <button class="modal-close" onclick="closeModal('modalExPicker')">✕</button>
+    </div>
+    <div class="search-bar"><input type="text" id="pickerSearch" placeholder="Zoek..." oninput="renderPicker()"></div>
+    <div class="chip-bar" id="pickerFilters" style="margin-bottom:8px"></div>
+    <div id="pickerList"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalAddEx">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="addExTitle">Nieuwe oefening</h2>
+      <button class="modal-close" onclick="closeModal('modalAddEx')">✕</button>
+    </div>
+    <label>Naam</label>
+    <input type="text" id="exName">
+    <label>Categorie</label>
+    <select id="exCat">
+      <option>Warming-up</option><option>Techniek</option><option>Positiespel</option>
+      <option>Partijvorm</option><option>Afwerken</option><option>Cooling-down</option>
+    </select>
+    <label>Beschrijving</label>
+    <textarea id="exDesc"></textarea>
+    <label>Duur (min)</label>
+    <input type="number" id="exDuur" value="10">
+    <label>Aantal spelers (min)</label>
+    <input type="number" id="exSpelers" value="6">
+    <label>Materiaal</label>
+    <input type="text" id="exMateriaal" placeholder="bijv. Ballen, pionnen, hesjes">
+    <label>Variaties</label>
+    <textarea id="exVariaties" placeholder="Één variatie per regel"></textarea>
+    <input type="hidden" id="exEditId">
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-primary btn-block" onclick="saveExercise()">💾 Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalExDetail">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="detailTitle"></h2>
+      <button class="modal-close" onclick="closeModal('modalExDetail')">✕</button>
+    </div>
+    <div id="detailBody"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalAddBlock">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Nieuw thema-blok</h2>
+      <button class="modal-close" onclick="closeModal('modalAddBlock')">✕</button>
+    </div>
+    <label>Thema</label>
+    <input type="text" id="blockTheme" placeholder="bijv. Positiespel">
+    <label>Startweek</label>
+    <input type="number" id="blockStart" value="1" min="1" max="52">
+    <label>Eindweek</label>
+    <input type="number" id="blockEnd" value="6" min="1" max="52">
+    <label>Team</label>
+    <select id="blockTeam">
+      <option value="Beide">Beide teams</option>
+      <option value="MO13">MO13</option>
+      <option value="JO10-4">JO10-4</option>
+    </select>
+    <input type="hidden" id="blockEditId">
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-primary btn-block" onclick="saveBlock()">💾 Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalLinkDrawing">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Koppel aan oefening</h2>
+      <button class="modal-close" onclick="closeModal('modalLinkDrawing')">✕</button>
+    </div>
+    <div id="linkDrawingList"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalPdfSelect">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Kies training voor PDF</h2>
+      <button class="modal-close" onclick="closeModal('modalPdfSelect')">✕</button>
+    </div>
+    <div id="pdfTrainingList"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalLinkWeek">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="linkWeekTitle">Koppel training</h2>
+      <button class="modal-close" onclick="closeModal('modalLinkWeek')">✕</button>
+    </div>
+    <div id="linkWeekList"></div>
+  </div>
+</div>
+
+<script>
+// ===== DEFAULT EXERCISES =====
+const DEFAULT_EXERCISES = [
+  {id:'d1',naam:'Tikspel met bal',cat:'Warming-up',beschrijving:'Alle spelers dribbelen in een vak. 2 tikkers zonder bal proberen anderen te tikken. Getikte spelers worden ook tikker.',duur:8,spelers:8,materiaal:'Ballen, pionnen (vak)',variaties:['Tikker heeft ook een bal','Alleen met links dribbelen','Bal beschermen met lichaam']},
+  {id:'d2',naam:'Dribbelparcours',cat:'Warming-up',beschrijving:'Parcours met pionnen. Spelers dribbelen door slalom, over/om hoedjes en finishen met pass.',duur:10,spelers:6,materiaal:'Ballen, pionnen, hoedjes',variaties:['Alleen rechts','Alleen links','Op tijd']},
+  {id:'d3',naam:'Rondo 4v1',cat:'Warming-up',beschrijving:'4 spelers in cirkel passen de bal rond, 1 verdediger in het midden probeert te onderscheppen.',duur:8,spelers:5,materiaal:'Ballen, pionnen',variaties:['4v2','Max 2 touches','1 touch']},
+  {id:'d4',naam:'Loopvormen met bal',cat:'Warming-up',beschrijving:'Diverse loopvormen met bal: skippings, hakken-billen, zijwaarts, achteruit. Gecombineerd met dribbelen.',duur:8,spelers:6,materiaal:'Ballen',variaties:['Zonder bal','Met richtingsverandering']},
+  {id:'d5',naam:'Dribbelen met richtingsverandering',cat:'Warming-up',beschrijving:'In een vak dribbelen, op fluitsignaal richting veranderen met verschillende technieken (kap, schaar, drag-back).',duur:10,spelers:8,materiaal:'Ballen, pionnen',variaties:['Alleen schaar','Alleen kap','Vrije keuze']},
+  {id:'d6',naam:'Passen in driehoek',cat:'Techniek',beschrijving:'Drie spelers in driehoek (8m). Passen en mee bewegen naar de volgende positie. Focus op zuivere pass en aanname.',duur:10,spelers:6,materiaal:'Ballen, pionnen',variaties:['Binnenkant rechts/links','Aanname met buitenkant','Eén touch']},
+  {id:'d7',naam:'Aanname-draai-pass',cat:'Techniek',beschrijving:'Speler ontvangt bal met rug naar doel, neemt aan, draait open en passt naar volgende. Beide kanten oefenen.',duur:12,spelers:8,materiaal:'Ballen, pionnen',variaties:['Draaien over links','Draaien over rechts','Met verdediger erbij']},
+  {id:'d8',naam:'Koppen in tweetallen',cat:'Techniek',beschrijving:'In tweetallen (3m afstand). A gooit in, B kopt terug. Focus op voorhoofd, ogen open, timing.',duur:8,spelers:4,materiaal:'Ballen',variaties:['Koppen op doel','Vanuit zijkant aangooien','Koppen met aanloop']},
+  {id:'d9',naam:'Passvormen met dubbele positiewissel',cat:'Techniek',beschrijving:'Vier spelers in ruitvorm. Bal wordt gepasst in vast patroon met positiewisseling na iedere pass.',duur:12,spelers:8,materiaal:'Ballen, pionnen',variaties:['Eén touch','Twee touch','Lange pass ertussen']},
+  {id:'d10',naam:'Traptechniek: binnenkant-buitenkant',cat:'Techniek',beschrijving:'In tweetallen (10m). Afwisselend passen met binnenkant en buitenkant voet.',duur:8,spelers:4,materiaal:'Ballen, pionnen',variaties:['Alleen links','Alleen rechts','Om en om voet']},
+  {id:'d11',naam:'Balcontrole uit de lucht',cat:'Techniek',beschrijving:'In tweetallen. A gooit hoog, B controleert met borst/dij/voet en passt terug.',duur:10,spelers:4,materiaal:'Ballen',variaties:['Alleen voet','Direct terugkoppen','Aanname en schot']},
+  {id:'d12',naam:'4v2 Positiespel',cat:'Positiespel',beschrijving:'Vak 10x10m. 4 buitenspelers houden bal, 2 verdedigers proberen te veroveren. Veroverd? Wisselen.',duur:12,spelers:6,materiaal:'Ballen, pionnen, hesjes',variaties:['5v2','Max 2 touches','Verplicht binnendoor spelen']},
+  {id:'d13',naam:'3v3 + 2 jokers',cat:'Positiespel',beschrijving:'Klein veld (20x15m). 3v3 met 2 neutrale jokers die altijd met de bal meespelen. Aanvallend overwicht oefenen.',duur:15,spelers:8,materiaal:'Ballen, pionnen, hesjes',variaties:['1 joker','Jokers mogen scoren','Verplicht via joker']},
+  {id:'d14',naam:'Lijnvoetbal',cat:'Positiespel',beschrijving:'2 teams. Scoren door de bal over de achterlijn van de tegenstander te dribbelen/passen.',duur:15,spelers:10,materiaal:'Ballen, pionnen, hesjes',variaties:['Verplicht 5 passes eerst','Met neutralen','Met kleine doeltjes']},
+  {id:'d15',naam:'6v4 opbouw uit achteren',cat:'Positiespel',beschrijving:'6 aanvallers bouwen op tegen 4 verdedigers. Doel: via combinatie door de linies spelen.',duur:15,spelers:10,materiaal:'Ballen, pionnen, hesjes',variaties:['5v4','Tijdsdruk (10 sec)','Met keeper']},
+  {id:'d16',naam:'Positiespel in zones',cat:'Positiespel',beschrijving:'Veld verdeeld in 3 zones. Per zone maximaal aantal spelers. Team moet bal door alle zones spelen om te scoren.',duur:15,spelers:10,materiaal:'Ballen, pionnen, hesjes',variaties:['4 zones','Vrij lopen na pass','Joker in middenzone']},
+  {id:'d17',naam:'4v4 met 4 doeltjes',cat:'Partijvorm',beschrijving:'Klein veld (25x20m). 4 piondoeltjes in de hoeken. Scoren door de bal door een doeltje te spelen.',duur:15,spelers:8,materiaal:'Ballen, pionnen, hesjes',variaties:['2 doeltjes','Score telt dubbel bij combinatie','Met keepers']},
+  {id:'d18',naam:'7v7 met terugspelen',cat:'Partijvorm',beschrijving:'Normaal 7v7 op half veld. Regel: bal moet minimaal 1x terug gespeeld worden voor je mag scoren.',duur:20,spelers:14,materiaal:'Ballen, doelen, hesjes',variaties:['Vrij spelen','Verplicht via de flank','Max 3 touches']},
+  {id:'d19',naam:'Koning van het veld',cat:'Partijvorm',beschrijving:'1v1 duels. Winnaar blijft, verliezer eruit. Wie het langst koning is wint.',duur:12,spelers:8,materiaal:'Ballen, pionnen, doel',variaties:['2v2','Met tijdslimiet','Beide kanten scoren']},
+  {id:'d20',naam:'Partij met puntentelling',cat:'Partijvorm',beschrijving:'7v7 partij. Extra punten voor: doelpunt na combinatie (2pt), kopgoal (3pt), solo (1pt).',duur:20,spelers:14,materiaal:'Ballen, doelen, hesjes',variaties:['Andere puntentelling','Met joker','Halverwege teams wisselen']},
+  {id:'d21',naam:'3v3 straatvorm',cat:'Partijvorm',beschrijving:'Klein veld (15x10m), kleine doeltjes, geen keeper. Snel combineren, veel doelkansen.',duur:12,spelers:6,materiaal:'Ballen, pionnen, kleine doelen',variaties:['4v4','Met keeper','Tijdslimiet per aanval']},
+  {id:'d22',naam:'1v1 op doel',cat:'Afwerken',beschrijving:'Aanvaller start met bal op 20m van doel. 1v1 tegen verdediger. Probeer te scoren.',duur:12,spelers:6,materiaal:'Ballen, doel, pionnen',variaties:['2v1','Vanuit de zijkant','Met tijdsdruk']},
+  {id:'d23',naam:'Kaatsen en afwerken',cat:'Afwerken',beschrijving:'Speler passt naar kaatser, ontvangt terug en werkt af op doel. Afwisselend links en rechts.',duur:12,spelers:6,materiaal:'Ballen, doel',variaties:['Direct afwerken','Na kapbeweging','Vanuit draai']},
+  {id:'d24',naam:'Voorzet-kopbal',cat:'Afwerken',beschrijving:'Speler geeft voorzet vanaf de flank, medespeler kopt in op doel.',duur:12,spelers:6,materiaal:'Ballen, doel',variaties:['Lage voorzet','Instorten op tweede paal','Vanuit counter']},
+  {id:'d25',naam:'Afwerken uit de draai',cat:'Afwerken',beschrijving:'Spits ontvangt bal met rug naar doel, draait weg van verdediger en werkt af.',duur:10,spelers:6,materiaal:'Ballen, doel, pionnen',variaties:['Met echte verdediger','Alleen links','Na één-twee']},
+  {id:'d26',naam:'Strafschoppen oefenen',cat:'Afwerken',beschrijving:'Iedere speler neemt 3 strafschoppen. Focus op techniek en plaatsing, niet kracht.',duur:10,spelers:8,materiaal:'Ballen, doel',variaties:['Competitievorm','Met druk (publiek)','Keeper tips geven']},
+  {id:'d27',naam:'Stretchen',cat:'Cooling-down',beschrijving:'Staand en zittend stretchen van alle grote spiergroepen. 15-20 sec per stretch.',duur:8,spelers:4,materiaal:'Geen',variaties:['Dynamisch stretchen','In tweetallen','Met foam roller']},
+  {id:'d28',naam:'Rustig passen in cirkel',cat:'Cooling-down',beschrijving:'In cirkel (8-10 spelers) rustig de bal rondspelen. Laag tempo, focus op techniek en communicatie.',duur:8,spelers:8,materiaal:'Ballen',variaties:['Met 2 ballen','Noem naam voor je past','Wisselend links/rechts']},
+  {id:'d29',naam:'Loopoefening rustig tempo',cat:'Cooling-down',beschrijving:'Rustig uitlopen rondom het veld, afbouwen van inspanning.',duur:5,spelers:4,materiaal:'Geen',variaties:['Met bal','In tweetallen pratend','Achteruit lopen']},
+  {id:'d30',naam:'Rondo 5v2',cat:'Warming-up',beschrijving:'5 buitenspelers tegen 2 verdedigers in cirkel. Focus op snelle passing en positie kiezen.',duur:10,spelers:7,materiaal:'Ballen, pionnen',variaties:['Max 1 touch','Verplicht dubbelpass','Groter/kleiner vak']},
+  {id:'d31',naam:'Partij met vaste posities',cat:'Partijvorm',beschrijving:'7v7 maar spelers mogen alleen in hun zone spelen (verdediging/middenveld/aanval). Leert positiebewustzijn.',duur:20,spelers:14,materiaal:'Ballen, doelen, hesjes, pionnen',variaties:['Vrije zone voor 1 speler','Kleinere zones','Wisselend positie']},
+  {id:'d32',naam:'Één-twee combinatie op doel',cat:'Afwerken',beschrijving:'Speler speelt één-twee met medespeler en werkt af op doel. Focus op timing en loopactie.',duur:10,spelers:6,materiaal:'Ballen, doel',variaties:['Vanuit de flank','Met verdediger','Direct afwerken']}
+];
+
+// ===== DATA MANAGEMENT =====
+function loadData(key, fallback) {
+  try { const d = localStorage.getItem('lsvv_' + key); return d ? JSON.parse(d) : fallback; }
+  catch(e) { return fallback; }
+}
+function saveData(key, data) {
+  localStorage.setItem('lsvv_' + key, JSON.stringify(data));
+}
+
+let exercises = loadData('exercises', null);
+if (!exercises) { exercises = [...DEFAULT_EXERCISES]; saveData('exercises', exercises); }
+
+let trainings = loadData('trainings', []);
+let seasonBlocks = loadData('seasonBlocks', []);
+let weekTrainings = loadData('weekTrainings', {}); // { "week-3": ["trainingId1",...] }
+let exerciseDrawings = loadData('exerciseDrawings', {}); // { exerciseId: dataURL }
+
+// Current training being edited
+let currentTraining = null; // { id, datum, team, thema, oefeningen: [{exId, tijd, notities}] }
+let currentTrainingId = null;
+
+// ===== TABS =====
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'database') renderDatabase();
+    if (btn.dataset.tab === 'season') { renderSeasonBlocks(); renderSeasonWeeks(); }
+    if (btn.dataset.tab === 'field') initCanvas();
+  });
+});
+
+// ===== TOAST =====
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+// ===== MODAL =====
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ===== PLANNER =====
+function renderSavedTrainings() {
+  const c = document.getElementById('savedTrainings');
+  if (!trainings.length) {
+    c.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Nog geen trainingen aangemaakt</p></div>';
+    return;
+  }
+  c.innerHTML = trainings.slice().sort((a,b) => b.datum.localeCompare(a.datum)).map(t => {
+    const totalMin = (t.oefeningen||[]).reduce((s,o) => s + (parseInt(o.tijd)||0), 0);
+    const exCount = (t.oefeningen||[]).length;
+    return `<div class="saved-training" onclick="viewTraining('${t.id}')">
+      <div class="st-header">
+        <div>
+          <div class="st-title">${escHtml(t.thema || 'Training')}</div>
+          <div class="st-meta">${t.datum || '—'} • ${t.team} • ${exCount} oef. • ${totalMin} min</div>
+        </div>
+      </div>
+      <div class="st-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-primary btn-small" onclick="viewTraining('${t.id}')">👁️ Bekijken</button>
+        <button class="btn btn-secondary btn-small" onclick="editTraining('${t.id}')">✏️ Bewerken</button>
+        <button class="btn btn-secondary btn-small" onclick="copyTraining('${t.id}')">📋 Kopiëren</button>
+        <button class="btn btn-danger btn-small" onclick="deleteTraining('${t.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showNewTraining() {
+  currentTraining = { id: 'tr_' + Date.now(), datum: new Date().toISOString().split('T')[0], team: 'MO13', thema: '', oefeningen: [] };
+  currentTrainingId = null;
+  document.getElementById('trainDate').value = currentTraining.datum;
+  document.getElementById('trainTeam').value = 'MO13';
+  document.getElementById('trainTheme').value = '';
+  document.getElementById('plannerHome').style.display = 'none';
+  document.getElementById('plannerEdit').style.display = 'block';
+  renderTrainingExercises();
+}
+
+function editTraining(id) {
+  const t = trainings.find(x => x.id === id);
+  if (!t) return;
+  currentTraining = JSON.parse(JSON.stringify(t));
+  currentTrainingId = id;
+  document.getElementById('trainDate').value = t.datum;
+  document.getElementById('trainTeam').value = t.team;
+  document.getElementById('trainTheme').value = t.thema;
+  document.getElementById('plannerHome').style.display = 'none';
+  document.getElementById('plannerView').style.display = 'none';
+  document.getElementById('plannerEdit').style.display = 'block';
+  renderTrainingExercises();
+}
+
+function copyTraining(id) {
+  const t = trainings.find(x => x.id === id);
+  if (!t) return;
+  const copy = JSON.parse(JSON.stringify(t));
+  copy.id = 'tr_' + Date.now();
+  copy.thema = (copy.thema || '') + ' (kopie)';
+  trainings.push(copy);
+  saveData('trainings', trainings);
+  renderSavedTrainings();
+  toast('Training gekopieerd!');
+}
+
+function deleteTraining(id) {
+  if (!confirm('Training verwijderen?')) return;
+  trainings = trainings.filter(x => x.id !== id);
+  saveData('trainings', trainings);
+  renderSavedTrainings();
+  toast('Verwijderd');
+}
+
+let viewingTrainingId = null;
+
+function viewTraining(id) {
+  const t = trainings.find(x => x.id === id);
+  if (!t) return;
+  viewingTrainingId = id;
+  const totalMin = (t.oefeningen||[]).reduce((s,o) => s + (parseInt(o.tijd)||0), 0);
+
+  let html = `<div class="card">
+    <h3 style="font-size:1.2rem;margin-bottom:4px">${escHtml(t.thema || 'Training')}</h3>
+    <div style="color:var(--text-light);font-size:.85rem;margin-bottom:8px">${t.datum || '—'} • ${t.team} • ${totalMin} min totaal</div>
+  </div>`;
+
+  if (t.oefeningen && t.oefeningen.length > 0) {
+    let runningTime = 0;
+    html += t.oefeningen.map((o, i) => {
+      const ex = exercises.find(e => e.id === o.exId);
+      const name = ex ? ex.naam : 'Onbekende oefening';
+      const cat = ex ? ex.cat : '';
+      const beschrijving = ex ? ex.beschrijving : '';
+      const materiaal = ex ? ex.materiaal : '';
+      const spelers = ex ? ex.spelers : '';
+      const variaties = ex ? (ex.variaties || '') : '';
+      const tijd = parseInt(o.tijd) || 10;
+      const startMin = runningTime;
+      runningTime += tijd;
+
+      let card = `<div class="card" style="border-left:4px solid var(--green);margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div>
+            <span style="font-size:.75rem;font-weight:700;color:var(--green);background:#e8f5e9;padding:2px 8px;border-radius:8px">${escHtml(cat)}</span>
+            <span style="font-size:.7rem;color:var(--text-light);margin-left:6px">${startMin}'-${runningTime}'</span>
+          </div>
+          <span style="font-weight:700;color:var(--green);font-size:.85rem">⏱️ ${tijd} min</span>
+        </div>
+        <div style="font-size:1rem;font-weight:700;margin-bottom:6px">${i+1}. ${escHtml(name)}</div>`;
+
+      if (beschrijving) card += `<div style="font-size:.85rem;color:var(--text);margin-bottom:6px;line-height:1.4">${escHtml(beschrijving)}</div>`;
+      if (materiaal) card += `<div style="font-size:.8rem;color:var(--text-light);margin-bottom:4px">🎽 Materiaal: ${escHtml(materiaal)}</div>`;
+      if (spelers) card += `<div style="font-size:.8rem;color:var(--text-light);margin-bottom:4px">👥 Spelers: ${spelers}+</div>`;
+      if (o.notities) card += `<div style="font-size:.8rem;color:#e65100;background:#fff3e0;padding:6px 10px;border-radius:8px;margin-top:6px">📝 ${escHtml(o.notities)}</div>`;
+      if (variaties) card += `<div style="font-size:.8rem;color:var(--text-light);margin-top:6px;font-style:italic">💡 Variaties: ${escHtml(variaties)}</div>`;
+
+      card += `</div>`;
+      return card;
+    }).join('');
+  } else {
+    html += '<div class="empty-state"><div class="empty-icon">📝</div><p>Geen oefeningen in deze training</p></div>';
+  }
+
+  document.getElementById('viewContent').innerHTML = html;
+  document.getElementById('plannerHome').style.display = 'none';
+  document.getElementById('plannerEdit').style.display = 'none';
+  document.getElementById('plannerView').style.display = 'block';
+}
+
+function printTraining(id) {
+  const t = trainings.find(x => x.id === id);
+  if (!t) return;
+  const totalMin = (t.oefeningen||[]).reduce((s,o) => s + (parseInt(o.tijd)||0), 0);
+  let runningTime = 0;
+  let rows = (t.oefeningen||[]).map((o,i) => {
+    const ex = exercises.find(e => e.id === o.exId);
+    const tijd = parseInt(o.tijd)||10;
+    const start = runningTime;
+    runningTime += tijd;
+    return `<tr>
+      <td style="padding:8px;border-bottom:1px solid #ddd;font-weight:700">${i+1}</td>
+      <td style="padding:8px;border-bottom:1px solid #ddd">${start}'-${runningTime}'</td>
+      <td style="padding:8px;border-bottom:1px solid #ddd"><b>${ex?ex.naam:'?'}</b><br><span style="font-size:12px;color:#666">${ex?ex.beschrijving:''}</span>${o.notities?'<br><span style="color:#e65100;font-size:12px">📝 '+o.notities+'</span>':''}</td>
+      <td style="padding:8px;border-bottom:1px solid #ddd">${ex?ex.cat:''}</td>
+      <td style="padding:8px;border-bottom:1px solid #ddd">${tijd} min</td>
+      <td style="padding:8px;border-bottom:1px solid #ddd;font-size:12px">${ex?ex.materiaal:''}</td>
+    </tr>`;
+  }).join('');
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Training ${t.thema||''}</title><style>body{font-family:system-ui;padding:20px}table{width:100%;border-collapse:collapse}th{background:#2e7d32;color:#fff;padding:8px;text-align:left}@media print{body{padding:0}}</style></head><body>
+    <h1 style="color:#2e7d32">⚽ ${escHtml(t.thema||'Training')}</h1>
+    <p>${t.datum} • ${t.team} • ${(t.oefeningen||[]).length} oefeningen • ${totalMin} minuten</p>
+    <table><thead><tr><th>#</th><th>Tijd</th><th>Oefening</th><th>Categorie</th><th>Duur</th><th>Materiaal</th></tr></thead><tbody>${rows}</tbody></table>
+    <p style="margin-top:20px;color:#999;font-size:12px">LSVV Trainingsplanner • Gegenereerd op ${new Date().toLocaleDateString('nl-NL')}</p>
+    </body></html>`);
+  w.document.close();
+  w.print();
+}
+
+function backToPlanner() {
+  document.getElementById('plannerHome').style.display = 'block';
+  document.getElementById('plannerEdit').style.display = 'none';
+  document.getElementById('plannerView').style.display = 'none';
+  renderSavedTrainings();
+}
+
+function saveTraining() {
+  currentTraining.datum = document.getElementById('trainDate').value;
+  currentTraining.team = document.getElementById('trainTeam').value;
+  currentTraining.thema = document.getElementById('trainTheme').value;
+  if (currentTrainingId) {
+    const idx = trainings.findIndex(x => x.id === currentTrainingId);
+    if (idx >= 0) trainings[idx] = currentTraining;
+  } else {
+    trainings.push(currentTraining);
+  }
+  saveData('trainings', trainings);
+  toast('Training opgeslagen!');
+  backToPlanner();
+}
+
+function renderTrainingExercises() {
+  const c = document.getElementById('trainingExercises');
+  if (!currentTraining.oefeningen.length) {
+    c.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><p>Voeg oefeningen toe</p></div>';
+    updateTotalTime();
+    return;
+  }
+  c.innerHTML = currentTraining.oefeningen.map((o, i) => {
+    const ex = exercises.find(e => e.id === o.exId);
+    const name = ex ? ex.naam : 'Onbekende oefening';
+    const cat = ex ? ex.cat : '';
+    return `<div class="train-ex" draggable="true" data-idx="${i}">
+      <div class="drag-handle">⠿</div>
+      <div class="train-ex-body">
+        <div class="train-ex-name">${escHtml(name)} <span class="badge">${escHtml(cat)}</span></div>
+        <div class="train-ex-time">
+          <span>⏱️</span>
+          <input type="number" value="${o.tijd||10}" min="1" max="120" onchange="updateExTime(${i},this.value)"> min
+        </div>
+        <div class="train-ex-notes">
+          <textarea placeholder="Notities..." onchange="updateExNotes(${i},this.value)">${escHtml(o.notities||'')}</textarea>
+        </div>
+      </div>
+      <div class="remove-btn" onclick="removeTrainEx(${i})">✕</div>
+    </div>`;
+  }).join('');
+  updateTotalTime();
+  initDragDrop();
+}
+
+function updateExTime(idx, val) { currentTraining.oefeningen[idx].tijd = parseInt(val)||10; updateTotalTime(); }
+function updateExNotes(idx, val) { currentTraining.oefeningen[idx].notities = val; }
+function removeTrainEx(idx) { currentTraining.oefeningen.splice(idx,1); renderTrainingExercises(); }
+function updateTotalTime() {
+  const total = (currentTraining?.oefeningen||[]).reduce((s,o) => s + (parseInt(o.tijd)||0), 0);
+  document.getElementById('totalTime').textContent = `Totale tijd: ${total} min`;
+}
+
+// Drag & Drop for training exercises
+function initDragDrop() {
+  const items = document.querySelectorAll('.train-ex');
+  let dragIdx = null;
+  items.forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragIdx = parseInt(item.dataset.idx);
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => { item.classList.remove('dragging'); });
+    item.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      const dropIdx = parseInt(item.dataset.idx);
+      if (dragIdx !== null && dragIdx !== dropIdx) {
+        const moved = currentTraining.oefeningen.splice(dragIdx, 1)[0];
+        currentTraining.oefeningen.splice(dropIdx, 0, moved);
+        renderTrainingExercises();
+      }
+    });
+  });
+  // Touch drag support
+  items.forEach(item => {
+    let touchStartY = 0;
+    const handle = item.querySelector('.drag-handle');
+    handle.addEventListener('touchstart', e => {
+      touchStartY = e.touches[0].clientY;
+      item.classList.add('dragging');
+    }, {passive:true});
+    handle.addEventListener('touchmove', e => { e.preventDefault(); }, {passive:false});
+    handle.addEventListener('touchend', e => {
+      item.classList.remove('dragging');
+      const endY = e.changedTouches[0].clientY;
+      const diff = endY - touchStartY;
+      const idx = parseInt(item.dataset.idx);
+      if (Math.abs(diff) > 30) {
+        const newIdx = diff > 0 ? Math.min(idx+1, currentTraining.oefeningen.length-1) : Math.max(idx-1,0);
+        if (newIdx !== idx) {
+          const moved = currentTraining.oefeningen.splice(idx,1)[0];
+          currentTraining.oefeningen.splice(newIdx,0,moved);
+          renderTrainingExercises();
+        }
+      }
+    });
+  });
+}
+
+// Exercise Picker Modal
+let pickerFilter = 'Alle';
+function openExercisePicker() {
+  pickerFilter = 'Alle';
+  document.getElementById('pickerSearch').value = '';
+  renderPickerFilters();
+  renderPicker();
+  openModal('modalExPicker');
+}
+
+function renderPickerFilters() {
+  const cats = ['Alle','Warming-up','Techniek','Positiespel','Partijvorm','Afwerken','Cooling-down'];
+  document.getElementById('pickerFilters').innerHTML = cats.map(c =>
+    `<button class="chip ${c===pickerFilter?'active':''}" onclick="pickerFilter='${c}';renderPickerFilters();renderPicker()">${c}</button>`
+  ).join('');
+}
+
+function renderPicker() {
+  const search = document.getElementById('pickerSearch').value.toLowerCase();
+  const filtered = exercises.filter(e => {
+    if (pickerFilter !== 'Alle' && e.cat !== pickerFilter) return false;
+    if (search && !e.naam.toLowerCase().includes(search) && !e.beschrijving.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  document.getElementById('pickerList').innerHTML = filtered.map(e =>
+    `<div class="ex-card" onclick="addExToTraining('${e.id}')">
+      <div class="ex-cat">${escHtml(e.cat)}</div>
+      <div class="ex-name">${escHtml(e.naam)}</div>
+      <div class="ex-meta"><span>⏱️ ${e.duur} min</span><span>👥 ${e.spelers}+</span></div>
+    </div>`
+  ).join('');
+}
+
+function addExToTraining(exId) {
+  const ex = exercises.find(e => e.id === exId);
+  currentTraining.oefeningen.push({ exId, tijd: ex ? ex.duur : 10, notities: '' });
+  renderTrainingExercises();
+  closeModal('modalExPicker');
+  toast('Oefening toegevoegd!');
+}
+
+// ===== DATABASE =====
+let dbFilter = 'Alle';
+function renderDatabase() {
+  renderDbFilters();
+  const search = (document.getElementById('dbSearch').value || '').toLowerCase();
+  const filtered = exercises.filter(e => {
+    if (dbFilter !== 'Alle' && e.cat !== dbFilter) return false;
+    if (search && !e.naam.toLowerCase().includes(search) && !(e.beschrijving||'').toLowerCase().includes(search)) return false;
+    return true;
+  });
+  document.getElementById('dbList').innerHTML = filtered.map(e =>
+    `<div class="ex-card" onclick="showExDetail('${e.id}')">
+      <div class="ex-cat">${escHtml(e.cat)}</div>
+      <div class="ex-name">${escHtml(e.naam)}</div>
+      <div class="ex-meta"><span>⏱️ ${e.duur} min</span><span>👥 ${e.spelers}+ spelers</span><span>🏷️ ${escHtml(e.materiaal||'—')}</span></div>
+      <div class="ex-desc">${escHtml((e.beschrijving||'').substring(0,100))}${(e.beschrijving||'').length>100?'...':''}</div>
+    </div>`
+  ).join('');
+}
+
+function renderDbFilters() {
+  const cats = ['Alle','Warming-up','Techniek','Positiespel','Partijvorm','Afwerken','Cooling-down'];
+  document.getElementById('dbFilters').innerHTML = cats.map(c =>
+    `<button class="chip ${c===dbFilter?'active':''}" onclick="dbFilter='${c}';renderDatabase()">${c}</button>`
+  ).join('');
+}
+
+function showExDetail(id) {
+  const e = exercises.find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('detailTitle').textContent = e.naam;
+  const drawing = exerciseDrawings[id];
+  document.getElementById('detailBody').innerHTML = `
+    <div class="badge" style="margin-bottom:8px">${escHtml(e.cat)}</div>
+    <p style="margin-bottom:12px;line-height:1.5">${escHtml(e.beschrijving||'')}</p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;font-size:.85rem">
+      <span>⏱️ <strong>${e.duur} min</strong></span>
+      <span>👥 <strong>${e.spelers}+ spelers</strong></span>
+    </div>
+    <p style="font-size:.85rem;margin-bottom:8px"><strong>Materiaal:</strong> ${escHtml(e.materiaal||'Geen')}</p>
+    ${e.variaties && e.variaties.length ? `<p style="font-size:.85rem"><strong>Variaties:</strong></p><ul style="font-size:.85rem;padding-left:20px;margin-top:4px">${e.variaties.map(v=>`<li>${escHtml(v)}</li>`).join('')}</ul>` : ''}
+    ${drawing ? `<div style="margin-top:12px"><strong>Veldtekening:</strong><br><img src="${drawing}" style="max-width:100%;border-radius:8px;margin-top:8px;border:1px solid #ddd"></div>` : ''}
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-secondary btn-small" onclick="openEditExercise('${e.id}')">✏️ Bewerken</button>
+      ${e.id.startsWith('d') ? '' : `<button class="btn btn-danger btn-small" onclick="deleteExercise('${e.id}')">🗑️ Verwijderen</button>`}
+    </div>
+  `;
+  openModal('modalExDetail');
+}
+
+function openAddExercise() {
+  document.getElementById('addExTitle').textContent = 'Nieuwe oefening';
+  document.getElementById('exName').value = '';
+  document.getElementById('exCat').value = 'Warming-up';
+  document.getElementById('exDesc').value = '';
+  document.getElementById('exDuur').value = 10;
+  document.getElementById('exSpelers').value = 6;
+  document.getElementById('exMateriaal').value = '';
+  document.getElementById('exVariaties').value = '';
+  document.getElementById('exEditId').value = '';
+  openModal('modalAddEx');
+}
+
+function openEditExercise(id) {
+  closeModal('modalExDetail');
+  const e = exercises.find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('addExTitle').textContent = 'Oefening bewerken';
+  document.getElementById('exName').value = e.naam;
+  document.getElementById('exCat').value = e.cat;
+  document.getElementById('exDesc').value = e.beschrijving || '';
+  document.getElementById('exDuur').value = e.duur;
+  document.getElementById('exSpelers').value = e.spelers;
+  document.getElementById('exMateriaal').value = e.materiaal || '';
+  document.getElementById('exVariaties').value = (e.variaties||[]).join('\n');
+  document.getElementById('exEditId').value = id;
+  openModal('modalAddEx');
+}
+
+function saveExercise() {
+  const naam = document.getElementById('exName').value.trim();
+  if (!naam) { toast('Vul een naam in'); return; }
+  const data = {
+    naam,
+    cat: document.getElementById('exCat').value,
+    beschrijving: document.getElementById('exDesc').value,
+    duur: parseInt(document.getElementById('exDuur').value) || 10,
+    spelers: parseInt(document.getElementById('exSpelers').value) || 4,
+    materiaal: document.getElementById('exMateriaal').value,
+    variaties: document.getElementById('exVariaties').value.split('\n').filter(v=>v.trim())
+  };
+  const editId = document.getElementById('exEditId').value;
+  if (editId) {
+    const idx = exercises.findIndex(x => x.id === editId);
+    if (idx >= 0) { exercises[idx] = { ...exercises[idx], ...data }; }
+  } else {
+    data.id = 'ex_' + Date.now();
+    exercises.push(data);
+  }
+  saveData('exercises', exercises);
+  closeModal('modalAddEx');
+  renderDatabase();
+  toast('Oefening opgeslagen!');
+}
+
+function deleteExercise(id) {
+  if (!confirm('Oefening verwijderen?')) return;
+  exercises = exercises.filter(x => x.id !== id);
+  saveData('exercises', exercises);
+  closeModal('modalExDetail');
+  renderDatabase();
+  toast('Verwijderd');
+}
+
+// ===== FIELD CANVAS =====
+let fieldType = 'full';
+let currentTool = 'select';
+let canvasObjects = []; // { type:'player'|'line', ... }
+let undoStack = [];
+let isDrawing = false;
+let drawStart = null;
+let drawPoints = [];
+let selectedPlayer = null;
+let playerDragging = false;
+let nextPlayerNum = {red:1, blue:1};
+let canvasInited = false;
+
+function setFieldType(type, btn) {
+  fieldType = type;
+  document.querySelectorAll('.field-select .chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  drawField();
+}
+
+function setTool(tool, btn) {
+  currentTool = tool;
+  document.querySelectorAll('.canvas-tools .tool-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedPlayer = null;
+}
+
+function initCanvas() {
+  if (canvasInited) { drawField(); return; }
+  canvasInited = true;
+  const canvas = document.getElementById('fieldCanvas');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = (rect.width * 0.714) * dpr;
+  canvas.style.height = (rect.width * 0.714) + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  canvas.displayWidth = rect.width;
+  canvas.displayHeight = rect.width * 0.714;
+
+  // Events
+  canvas.addEventListener('pointerdown', onCanvasDown);
+  canvas.addEventListener('pointermove', onCanvasMove);
+  canvas.addEventListener('pointerup', onCanvasUp);
+  canvas.addEventListener('pointerleave', onCanvasUp);
+
+  drawField();
+}
+
+function getCanvasPos(e) {
+  const canvas = document.getElementById('fieldCanvas');
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+function onCanvasDown(e) {
+  const pos = getCanvasPos(e);
+  if (currentTool === 'select') {
+    // Find player under cursor
+    for (let i = canvasObjects.length-1; i>=0; i--) {
+      const obj = canvasObjects[i];
+      if (obj.type === 'player') {
+        const dx = pos.x - obj.x, dy = pos.y - obj.y;
+        if (Math.sqrt(dx*dx+dy*dy) < 18) {
+          selectedPlayer = i;
+          playerDragging = true;
+          return;
+        }
+      }
+    }
+  } else if (currentTool === 'playerRed' || currentTool === 'playerBlue') {
+    pushUndo();
+    const color = currentTool === 'playerRed' ? 'red' : 'blue';
+    const num = nextPlayerNum[color === 'red' ? 'red' : 'blue']++;
+    canvasObjects.push({ type:'player', color, x:pos.x, y:pos.y, num });
+    drawField();
+  } else if (currentTool === 'eraser') {
+    // Remove object under cursor
+    for (let i = canvasObjects.length-1; i>=0; i--) {
+      const obj = canvasObjects[i];
+      if (obj.type === 'player') {
+        const dx = pos.x - obj.x, dy = pos.y - obj.y;
+        if (Math.sqrt(dx*dx+dy*dy) < 18) { pushUndo(); canvasObjects.splice(i,1); drawField(); return; }
+      } else if (obj.type === 'line') {
+        for (const p of obj.points) {
+          const dx = pos.x-p.x, dy = pos.y-p.y;
+          if (Math.sqrt(dx*dx+dy*dy) < 15) { pushUndo(); canvasObjects.splice(i,1); drawField(); return; }
+        }
+      }
+    }
+  } else {
+    // Start drawing line
+    isDrawing = true;
+    drawPoints = [pos];
+    drawStart = pos;
+  }
+}
+
+function onCanvasMove(e) {
+  if (playerDragging && selectedPlayer !== null) {
+    const pos = getCanvasPos(e);
+    canvasObjects[selectedPlayer].x = pos.x;
+    canvasObjects[selectedPlayer].y = pos.y;
+    drawField();
+  } else if (isDrawing) {
+    const pos = getCanvasPos(e);
+    drawPoints.push(pos);
+    drawField();
+    drawTempLine();
+  }
+}
+
+function onCanvasUp(e) {
+  if (playerDragging) {
+    playerDragging = false;
+    selectedPlayer = null;
+  }
+  if (isDrawing && drawPoints.length > 1) {
+    pushUndo();
+    canvasObjects.push({ type:'line', lineType:currentTool, points:[...drawPoints] });
+    isDrawing = false;
+    drawPoints = [];
+    drawField();
+  } else {
+    isDrawing = false;
+    drawPoints = [];
+  }
+}
+
+function pushUndo() { undoStack.push(JSON.parse(JSON.stringify(canvasObjects))); if(undoStack.length>30)undoStack.shift(); }
+function undoCanvas() {
+  if (!undoStack.length) return;
+  canvasObjects = undoStack.pop();
+  drawField();
+}
+function clearCanvas() {
+  if (!confirm('Veldtekening wissen?')) return;
+  pushUndo();
+  canvasObjects = [];
+  nextPlayerNum = {red:1,blue:1};
+  drawField();
+}
+
+function drawField() {
+  const canvas = document.getElementById('fieldCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.displayWidth;
+  const h = canvas.displayHeight;
+
+  // Green background
+  ctx.fillStyle = '#388e3c';
+  ctx.fillRect(0,0,w,h);
+
+  // Grass pattern
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  for (let i=0; i<w; i+=20) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
+
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+
+  if (fieldType === 'full') {
+    const m = 20; // margin
+    const fw = w - 2*m, fh = h - 2*m;
+    // Outline
+    ctx.strokeRect(m, m, fw, fh);
+    // Center line
+    ctx.beginPath(); ctx.moveTo(w/2, m); ctx.lineTo(w/2, h-m); ctx.stroke();
+    // Center circle
+    ctx.beginPath(); ctx.arc(w/2, h/2, fh*0.15, 0, Math.PI*2); ctx.stroke();
+    // Center spot
+    ctx.beginPath(); ctx.arc(w/2, h/2, 3, 0, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+    // Penalty areas
+    const paW = fw*0.17, paH = fh*0.44;
+    ctx.strokeRect(m, h/2-paH/2, paW, paH);
+    ctx.strokeRect(w-m-paW, h/2-paH/2, paW, paH);
+    // Goal areas
+    const gaW = fw*0.06, gaH = fh*0.2;
+    ctx.strokeRect(m, h/2-gaH/2, gaW, gaH);
+    ctx.strokeRect(w-m-gaW, h/2-gaH/2, gaW, gaH);
+    // Penalty spots
+    ctx.beginPath(); ctx.arc(m+fw*0.12, h/2, 3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w-m-fw*0.12, h/2, 3, 0, Math.PI*2); ctx.fill();
+    // Penalty arcs
+    ctx.beginPath(); ctx.arc(m+fw*0.12, h/2, fh*0.15, -0.8, 0.8); ctx.stroke();
+    ctx.beginPath(); ctx.arc(w-m-fw*0.12, h/2, fh*0.15, Math.PI-0.8, Math.PI+0.8); ctx.stroke();
+    // Corner arcs
+    const cr = 8;
+    ctx.beginPath(); ctx.arc(m,m,cr,0,Math.PI/2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(w-m,m,cr,Math.PI/2,Math.PI); ctx.stroke();
+    ctx.beginPath(); ctx.arc(m,h-m,cr,-Math.PI/2,0); ctx.stroke();
+    ctx.beginPath(); ctx.arc(w-m,h-m,cr,Math.PI,-Math.PI*1.5); ctx.stroke();
+  } else {
+    // Half field (vertical orientation)
+    const m = 20;
+    const fw = w - 2*m, fh = h - 2*m;
+    // Outline (just half)
+    ctx.beginPath();
+    ctx.moveTo(m, m); ctx.lineTo(w-m, m); ctx.lineTo(w-m, h-m); ctx.lineTo(m, h-m); ctx.closePath(); ctx.stroke();
+    // Center line at top
+    ctx.beginPath(); ctx.moveTo(m, m); ctx.lineTo(w-m, m); ctx.stroke();
+    // Half center circle
+    ctx.beginPath(); ctx.arc(w/2, m, fh*0.2, 0, Math.PI); ctx.stroke();
+    // Penalty area
+    const paW = fw*0.55, paH = fh*0.3;
+    ctx.strokeRect(w/2-paW/2, h-m-paH, paW, paH);
+    // Goal area
+    const gaW = fw*0.25, gaH = fh*0.1;
+    ctx.strokeRect(w/2-gaW/2, h-m-gaH, gaW, gaH);
+    // Penalty spot
+    ctx.beginPath(); ctx.arc(w/2, h-m-fh*0.2, 3, 0, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+    // Penalty arc
+    ctx.beginPath(); ctx.arc(w/2, h-m-fh*0.2, fh*0.12, Math.PI+0.6, -0.6); ctx.stroke();
+    // Goal
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#ffeb3b';
+    const goalW = fw*0.15;
+    ctx.strokeRect(w/2-goalW/2, h-m, goalW, 8);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+  }
+
+  // Draw objects
+  canvasObjects.forEach((obj, i) => {
+    if (obj.type === 'line') drawLine(ctx, obj);
+    else if (obj.type === 'player') drawPlayer(ctx, obj, i === selectedPlayer);
+  });
+}
+
+function drawLine(ctx, obj) {
+  if (obj.points.length < 2) return;
+  ctx.beginPath();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([]);
+
+  if (obj.lineType === 'run') {
+    ctx.setLineDash([8,6]);
+    ctx.strokeStyle = '#ffeb3b';
+  } else if (obj.lineType === 'pass') {
+    ctx.strokeStyle = '#fff';
+  } else if (obj.lineType === 'dribble') {
+    ctx.strokeStyle = '#ff9800';
+    // Draw wavy line
+    ctx.beginPath();
+    const pts = obj.points;
+    for (let i=0; i<pts.length-1; i++) {
+      const dx = pts[i+1].x-pts[i].x, dy = pts[i+1].y-pts[i].y;
+      const len = Math.sqrt(dx*dx+dy*dy);
+      if (len < 1) continue;
+      const nx = -dy/len, ny = dx/len;
+      const amp = 5;
+      const mx = (pts[i].x+pts[i+1].x)/2 + nx*amp*(i%2?1:-1);
+      const my = (pts[i].y+pts[i+1].y)/2 + ny*amp*(i%2?1:-1);
+      if (i===0) ctx.moveTo(pts[i].x, pts[i].y);
+      ctx.quadraticCurveTo(mx, my, pts[i+1].x, pts[i+1].y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    return;
+  } else if (obj.lineType === 'shot') {
+    ctx.strokeStyle = '#f44336';
+    ctx.lineWidth = 3;
+  }
+
+  ctx.moveTo(obj.points[0].x, obj.points[0].y);
+  for (let i=1; i<obj.points.length; i++) ctx.lineTo(obj.points[i].x, obj.points[i].y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Arrow at end for shot and pass
+  if (obj.lineType === 'shot' || obj.lineType === 'pass') {
+    const last = obj.points[obj.points.length-1];
+    const prev = obj.points[Math.max(0, obj.points.length-5)];
+    const angle = Math.atan2(last.y-prev.y, last.x-prev.x);
+    const aLen = 12;
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(last.x - aLen*Math.cos(angle-0.4), last.y - aLen*Math.sin(angle-0.4));
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(last.x - aLen*Math.cos(angle+0.4), last.y - aLen*Math.sin(angle+0.4));
+    ctx.stroke();
+  }
+}
+
+function drawTempLine() {
+  if (drawPoints.length < 2) return;
+  const canvas = document.getElementById('fieldCanvas');
+  const ctx = canvas.getContext('2d');
+  const obj = { type:'line', lineType:currentTool, points:drawPoints };
+  drawLine(ctx, obj);
+}
+
+function drawPlayer(ctx, obj, selected) {
+  const r = 14;
+  ctx.beginPath();
+  ctx.arc(obj.x, obj.y, r, 0, Math.PI*2);
+  ctx.fillStyle = obj.color === 'red' ? '#e53935' : '#1e88e5';
+  ctx.fill();
+  if (selected) { ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 3; ctx.stroke(); }
+  else { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); }
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 11px system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(obj.num, obj.x, obj.y);
+}
+
+function saveCanvasPNG() {
+  const canvas = document.getElementById('fieldCanvas');
+  const link = document.createElement('a');
+  link.download = 'veldtekening.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  toast('PNG opgeslagen!');
+}
+
+function openLinkDrawing() {
+  const c = document.getElementById('linkDrawingList');
+  c.innerHTML = exercises.map(e =>
+    `<div class="ex-card" onclick="linkDrawingToEx('${e.id}')">
+      <div class="ex-cat">${escHtml(e.cat)}</div>
+      <div class="ex-name">${escHtml(e.naam)}</div>
+    </div>`
+  ).join('');
+  openModal('modalLinkDrawing');
+}
+
+function linkDrawingToEx(exId) {
+  const canvas = document.getElementById('fieldCanvas');
+  exerciseDrawings[exId] = canvas.toDataURL('image/png');
+  saveData('exerciseDrawings', exerciseDrawings);
+  closeModal('modalLinkDrawing');
+  toast('Tekening gekoppeld!');
+}
+
+// ===== SEASON PLANNER =====
+function renderSeasonBlocks() {
+  const c = document.getElementById('seasonBlocks');
+  if (!seasonBlocks.length) {
+    c.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p>Nog geen thema-blokken</p></div>';
+    return;
+  }
+  c.innerHTML = seasonBlocks.map(b => `
+    <div class="block-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="block-theme">🎯 ${escHtml(b.theme)}</div>
+          <div class="block-weeks">Week ${b.start} – ${b.end} • ${b.team}</div>
+        </div>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-secondary btn-small" onclick="editBlock('${b.id}')">✏️</button>
+          <button class="btn btn-danger btn-small" onclick="deleteBlock('${b.id}')">🗑️</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openAddBlock() {
+  document.getElementById('blockTheme').value = '';
+  document.getElementById('blockStart').value = 1;
+  document.getElementById('blockEnd').value = 6;
+  document.getElementById('blockTeam').value = 'Beide';
+  document.getElementById('blockEditId').value = '';
+  openModal('modalAddBlock');
+}
+
+function editBlock(id) {
+  const b = seasonBlocks.find(x=>x.id===id);
+  if (!b) return;
+  document.getElementById('blockTheme').value = b.theme;
+  document.getElementById('blockStart').value = b.start;
+  document.getElementById('blockEnd').value = b.end;
+  document.getElementById('blockTeam').value = b.team;
+  document.getElementById('blockEditId').value = id;
+  openModal('modalAddBlock');
+}
+
+function saveBlock() {
+  const theme = document.getElementById('blockTheme').value.trim();
+  if (!theme) { toast('Vul een thema in'); return; }
+  const data = {
+    theme,
+    start: parseInt(document.getElementById('blockStart').value),
+    end: parseInt(document.getElementById('blockEnd').value),
+    team: document.getElementById('blockTeam').value
+  };
+  const editId = document.getElementById('blockEditId').value;
+  if (editId) {
+    const idx = seasonBlocks.findIndex(x=>x.id===editId);
+    if (idx>=0) seasonBlocks[idx] = { ...seasonBlocks[idx], ...data };
+  } else {
+    data.id = 'blk_' + Date.now();
+    seasonBlocks.push(data);
+  }
+  saveData('seasonBlocks', seasonBlocks);
+  closeModal('modalAddBlock');
+  renderSeasonBlocks();
+  renderSeasonWeeks();
+  toast('Blok opgeslagen!');
+}
+
+function deleteBlock(id) {
+  if (!confirm('Blok verwijderen?')) return;
+  seasonBlocks = seasonBlocks.filter(x=>x.id!==id);
+  saveData('seasonBlocks', seasonBlocks);
+  renderSeasonBlocks();
+  renderSeasonWeeks();
+}
+
+function renderSeasonWeeks() {
+  const c = document.getElementById('seasonWeeks');
+  const startW = parseInt(document.getElementById('seasonStartWeek').value) || 1;
+  const numW = parseInt(document.getElementById('seasonNumWeeks').value) || 20;
+  let html = '';
+  for (let w = startW; w < startW + numW; w++) {
+    const weekBlocks = seasonBlocks.filter(b => w >= b.start && w <= b.end);
+    const wKey = 'week-' + w;
+    const linkedIds = weekTrainings[wKey] || [];
+    const linked = linkedIds.map(id => trainings.find(t=>t.id===id)).filter(Boolean);
+    html += `<div class="week-row">
+      <div class="week-num">W${w}</div>
+      <div class="week-content">
+        ${weekBlocks.length ? `<div class="week-theme">${weekBlocks.map(b=>'🎯 '+escHtml(b.theme)+' ('+b.team+')').join(', ')}</div>` : ''}
+        <div class="week-trainings">
+          ${linked.map(t => `<span class="week-training-chip">${escHtml(t.thema||'Training')} - ${t.team}</span>`).join('')}
+          <button class="btn btn-secondary btn-small" style="padding:2px 8px;min-height:24px;font-size:.7rem" onclick="openLinkWeek(${w})">+ koppel</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  c.innerHTML = html;
+}
+
+function openLinkWeek(weekNum) {
+  const wKey = 'week-' + weekNum;
+  document.getElementById('linkWeekTitle').textContent = 'Koppel training aan week ' + weekNum;
+  const existing = weekTrainings[wKey] || [];
+  document.getElementById('linkWeekList').innerHTML = trainings.length ?
+    trainings.map(t => {
+      const linked = existing.includes(t.id);
+      return `<div class="ex-card" onclick="toggleWeekTraining(${weekNum},'${t.id}')" style="border-left-color:${linked?'#4caf50':'#ccc'}">
+        <div class="ex-name">${escHtml(t.thema||'Training')} ${linked?'✅':''}</div>
+        <div class="ex-meta"><span>${t.datum}</span><span>${t.team}</span></div>
+      </div>`;
+    }).join('') : '<div class="empty-state"><p>Geen trainingen beschikbaar</p></div>';
+  openModal('modalLinkWeek');
+}
+
+function toggleWeekTraining(weekNum, trainId) {
+  const wKey = 'week-' + weekNum;
+  if (!weekTrainings[wKey]) weekTrainings[wKey] = [];
+  const idx = weekTrainings[wKey].indexOf(trainId);
+  if (idx >= 0) weekTrainings[wKey].splice(idx, 1);
+  else weekTrainings[wKey].push(trainId);
+  saveData('weekTrainings', weekTrainings);
+  openLinkWeek(weekNum); // refresh
+  renderSeasonWeeks();
+}
+
+// ===== EXPORT / IMPORT =====
+function exportJSON() {
+  const data = { exercises, trainings, seasonBlocks, weekTrainings, exerciseDrawings, exportDate: new Date().toISOString(), version: '1.0' };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.download = 'lsvv-trainingen-' + new Date().toISOString().split('T')[0] + '.json';
+  a.href = URL.createObjectURL(blob);
+  a.click();
+  toast('JSON geëxporteerd!');
+}
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.exercises) { exercises = data.exercises; saveData('exercises', exercises); }
+      if (data.trainings) { trainings = data.trainings; saveData('trainings', trainings); }
+      if (data.seasonBlocks) { seasonBlocks = data.seasonBlocks; saveData('seasonBlocks', seasonBlocks); }
+      if (data.weekTrainings) { weekTrainings = data.weekTrainings; saveData('weekTrainings', weekTrainings); }
+      if (data.exerciseDrawings) { exerciseDrawings = data.exerciseDrawings; saveData('exerciseDrawings', exerciseDrawings); }
+      toast('Data geïmporteerd!');
+      renderSavedTrainings();
+      renderDatabase();
+    } catch(err) {
+      toast('Ongeldig JSON bestand');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function exportTrainingPDF() {
+  if (!trainings.length) { toast('Geen trainingen om te exporteren'); return; }
+  const c = document.getElementById('pdfTrainingList');
+  c.innerHTML = trainings.map(t =>
+    `<div class="ex-card" onclick="generatePDF('${t.id}')">
+      <div class="ex-name">${escHtml(t.thema||'Training')}</div>
+      <div class="ex-meta"><span>${t.datum}</span><span>${t.team}</span></div>
+    </div>`
+  ).join('');
+  openModal('modalPdfSelect');
+}
+
+function generatePDF(trainId) {
+  closeModal('modalPdfSelect');
+  const t = trainings.find(x=>x.id===trainId);
+  if (!t) return;
+  const totalMin = (t.oefeningen||[]).reduce((s,o)=>s+(parseInt(o.tijd)||0),0);
+
+  // Generate a printable HTML page
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Training ${escHtml(t.thema||'')}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:system-ui;padding:20px;color:#212121;max-width:800px;margin:0 auto}
+    h1{color:#2e7d32;font-size:1.5rem;margin-bottom:4px}
+    .meta{color:#757575;margin-bottom:20px;font-size:.9rem}
+    .ex-item{border:1px solid #e0e0e0;border-radius:8px;padding:12px;margin-bottom:10px;page-break-inside:avoid}
+    .ex-item h3{color:#1b5e20;font-size:1rem;margin-bottom:4px}
+    .ex-item .cat{font-size:.75rem;color:#2e7d32;font-weight:700;text-transform:uppercase}
+    .ex-item .info{font-size:.85rem;color:#555;margin:4px 0}
+    .ex-item .notes{font-size:.85rem;background:#f5f5f5;padding:8px;border-radius:4px;margin-top:6px;font-style:italic}
+    .total{background:#2e7d32;color:#fff;padding:10px;text-align:center;border-radius:8px;font-weight:700;margin-top:12px}
+    .footer{text-align:center;color:#bbb;margin-top:20px;font-size:.75rem}
+    @media print{body{padding:10px}}
+  </style></head><body>
+  <h1>⚽ ${escHtml(t.thema||'Training')}</h1>
+  <div class="meta">📅 ${t.datum} &nbsp;|&nbsp; 🏟️ ${t.team} &nbsp;|&nbsp; ⏱️ ${totalMin} min &nbsp;|&nbsp; LSVV Langedijk</div>`;
+
+  (t.oefeningen||[]).forEach((o, i) => {
+    const ex = exercises.find(e=>e.id===o.exId);
+    if (!ex) return;
+    html += `<div class="ex-item">
+      <div class="cat">${escHtml(ex.cat)}</div>
+      <h3>${i+1}. ${escHtml(ex.naam)} (${o.tijd} min)</h3>
+      <div class="info">${escHtml(ex.beschrijving||'')}</div>
+      <div class="info">👥 ${ex.spelers}+ spelers &nbsp;|&nbsp; 🏷️ ${escHtml(ex.materiaal||'Geen')}</div>
+      ${o.notities ? `<div class="notes">📝 ${escHtml(o.notities)}</div>` : ''}
+    </div>`;
+  });
+
+  html += `<div class="total">Totale trainingstijd: ${totalMin} minuten</div>`;
+  html += `<div class="footer">Gegenereerd door LSVV Trainingsplanner</div>`;
+  html += `</body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+  toast('PDF klaar voor printen!');
+}
+
+function resetData() {
+  if (!confirm('ALLE data wissen? Dit kan niet ongedaan worden!')) return;
+  if (!confirm('Weet je het zeker? Alles wordt verwijderd.')) return;
+  localStorage.removeItem('lsvv_exercises');
+  localStorage.removeItem('lsvv_trainings');
+  localStorage.removeItem('lsvv_seasonBlocks');
+  localStorage.removeItem('lsvv_weekTrainings');
+  localStorage.removeItem('lsvv_exerciseDrawings');
+  exercises = [...DEFAULT_EXERCISES];
+  trainings = [];
+  seasonBlocks = [];
+  weekTrainings = {};
+  exerciseDrawings = {};
+  saveData('exercises', exercises);
+  renderSavedTrainings();
+  renderDatabase();
+  toast('Alle data gewist');
+}
+
+// ===== UTIL =====
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+
+// ===== INIT =====
+renderSavedTrainings();
+renderDatabase();
+</script>
+</body>
+</html>
