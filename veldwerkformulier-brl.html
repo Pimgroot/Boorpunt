@@ -1195,17 +1195,26 @@ function importClientData() {
     if (data._klantBoringen && data._klantBoringen.length) {
       const tbody = document.querySelector('#table2001 tbody');
       data._klantBoringen.forEach((row, i) => {
-        if (i >= tbody.children.length) addRow2001();
+        // Zorg dat er genoeg rijen zijn
+        while (i >= tbody.children.length) addRow2001();
         const tr = tbody.children[i];
         if (tr) {
-          const td = tr.querySelector('input[data-field="terreindeel"]');
-          if (td && row.terreindeel) td.value = row.terreindeel;
-          const bor = tr.querySelector('input[data-field="boringen"]');
-          if (bor) bor.value = (row.aantal ? row.aantal+' st' : '') + (row.diepte ? ' tot '+row.diepte+' m-mv' : '');
-          const pb = tr.querySelector('input[data-field="peilbuizen"]');
-          if (pb && row.peilbuizen) pb.value = row.peilbuizen;
-          const opm = tr.querySelector('input[data-field="opmerkingen"]');
-          if (opm && row.opmerkingen) opm.value = row.opmerkingen;
+          const setField = (field, val) => {
+            const inp = tr.querySelector('input[data-field="'+field+'"]');
+            if (inp && val) inp.value = val;
+          };
+          setField('terreindeel', row.terreindeel);
+          // Boringen: combineer aantal + diepte
+          let borTxt = '';
+          if (row.aantal) borTxt += row.aantal + ' st';
+          if (row.diepte) borTxt += (borTxt ? ' tot ' : 'tot ') + row.diepte + ' m-mv';
+          setField('boringen', borTxt);
+          // Peilbuizen: combineer aantal + filterstelling
+          let pbTxt = '';
+          if (row.peilbuizen) pbTxt += row.peilbuizen + ' st';
+          if (row.filterstelling) pbTxt += (pbTxt ? ', filter ' : 'filter ') + row.filterstelling + ' m-mv';
+          setField('peilbuizen', pbTxt || row.peilbuizen || '');
+          setField('opmerkingen', row.opmerkingen);
         }
       });
     }
