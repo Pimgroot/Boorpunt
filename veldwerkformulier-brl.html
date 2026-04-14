@@ -117,7 +117,28 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
 .sig-clear:hover{background:#ffebee}
 .sig-meta{font-size:10px;color:#888;margin-top:3px;font-style:italic}
 
+/* Klantmodus */
+.client-header{display:none;background:#5a9138;color:#fff;padding:16px 24px;font-size:18px;align-items:center;justify-content:space-between;gap:12px}
+.client-note{display:none;background:#e8f5e9;border:1px solid #a5d6a7;color:#2e7d32;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:13px}
+.client-action-wrap{display:none}
+body.klant-mode .full-header{display:none}
+body.klant-mode .client-header{display:flex}
+body.klant-mode .client-note{display:block}
+body.klant-mode .protocol-section,
+body.klant-mode #protocolChoiceCard,
+body.klant-mode #importCard,
+body.klant-mode #kwaliboCard,
+body.klant-mode #normalActionCard{display:none}
+body.klant-mode .client-action-wrap{display:block}
+
+.share-code-box{width:100%;min-height:120px;padding:10px;border:1px solid #ccc;border-radius:6px;font-family:monospace;font-size:12px}
+.share-url-box{width:100%;padding:10px;border:1px solid #ccc;border-radius:6px;font-size:12px}
+.qr-wrap{margin-top:12px;text-align:center}
+.qr-wrap img{max-width:180px;border:1px solid #ddd;border-radius:6px;padding:6px;background:#fff}
+
 @media(max-width:600px){
+  .client-header{padding:12px 16px;font-size:15px}
+
   h1.header{padding:12px 16px;font-size:15px}
   .container{padding:8px}
   .form-grid{grid-template-columns:1fr}
@@ -127,7 +148,7 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
 </head>
 <body>
 
-<h1 class="header">
+<h1 class="header full-header" id="fullHeader">
   <div style="display:flex;align-items:center;gap:12px">
     <img src="logo-gr.png" alt="Ground Research" style="height:48px;border-radius:4px" onerror="this.style.display='none'">
     <div>
@@ -142,13 +163,21 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
   </div>
 </h1>
 
+<div class="client-header" id="clientHeader">
+  <div style="display:flex;align-items:center;gap:12px">
+    <img src="logo-gr.png" alt="Ground Research" style="height:48px;border-radius:4px" onerror="this.style.display='none'">
+    <div>Veldwerkopdracht aanleveren — Ground Research BV</div>
+  </div>
+</div>
+
 <div class="container">
 
 <!-- Status -->
 <div id="statusBar" class="status-bar"></div>
+<div id="clientNote" class="client-note">Vul onderstaande gegevens in voor uw veldwerkopdracht. Klik onderaan op 'Gereed' om een code te genereren die u naar Ground Research kunt sturen.</div>
 
 <!-- DOCX Drop Zone -->
-<div class="card">
+<div class="card" id="importCard">
   <div class="card-head" onclick="toggleCard(this)">
     📂 Bestand Import — Sleep een veldwerkopdracht
     <span class="toggle">▼</span>
@@ -165,7 +194,7 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
 </div>
 
 <!-- Protocol keuze -->
-<div class="card">
+<div class="card" id="protocolChoiceCard">
   <div class="card-head" onclick="toggleCard(this)">
     📋 Protocol Keuze
     <span class="toggle">▼</span>
@@ -749,7 +778,7 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
 </div>
 
 <!-- Kwalibo verklaring -->
-<div class="card">
+<div class="card" id="kwaliboCard">
   <div class="card-head" onclick="toggleCard(this)">
     ✍️ Kwalibo-verklaring & Ondertekening
     <span class="toggle">▼</span>
@@ -871,12 +900,20 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
 </div>
 
 <!-- Action buttons -->
-<div class="card">
+<div class="card" id="normalActionCard">
   <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;padding:20px">
     <button class="btn btn-primary" onclick="generatePDF()">📄 Genereer PDF</button>
     <button class="btn btn-success" onclick="saveToStorage()">💾 Opslaan</button>
     <button class="btn btn-orange" onclick="loadFromStorage()">📂 Laden</button>
+    <button class="btn btn-primary" onclick="openShareClientModal()">🔗 Deel met klant</button>
+    <button class="btn btn-orange" onclick="openImportClientDataModal()">📥 Importeer klantdata</button>
     <button class="btn btn-danger" onclick="clearAll()">🗑️ Wis alles</button>
+  </div>
+</div>
+
+<div class="card client-action-wrap" id="clientActionCard">
+  <div class="card-body" style="display:flex;justify-content:center;padding:20px">
+    <button class="btn btn-success" style="font-size:16px;padding:12px 24px;background:#5a9138" onclick="generateClientShareCode()">✅ Gereed — Genereer code</button>
   </div>
 </div>
 
@@ -885,6 +922,7 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
 <script>
 // === STATE ===
 let currentProtocol = '2001';
+let isKlantMode = false;
 
 // === UI HELPERS ===
 function toggleCard(el) {
@@ -909,6 +947,174 @@ function showStatus(msg, type) {
   bar.textContent = msg;
   bar.className = 'status-bar ' + type;
   setTimeout(() => { bar.className = 'status-bar'; }, 5000);
+}
+
+function createModal(title, bodyHtml, footerHtml = '') {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:760px">
+      <div class="modal-head">
+        <h3>${title}</h3>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">${bodyHtml}</div>
+      ${footerHtml ? `<div class="modal-footer">${footerHtml}</div>` : ''}
+    </div>
+  `;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function copyToClipboard(text, okMsg = 'Gekopieerd') {
+  navigator.clipboard.writeText(text).then(() => showStatus('✅ ' + okMsg, 'success')).catch(() => showStatus('Kopiëren mislukt', 'error'));
+}
+
+function encodeShareData(obj) {
+  return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+}
+
+function decodeShareData(code) {
+  return JSON.parse(decodeURIComponent(escape(atob(code))));
+}
+
+function getFilledFormData() {
+  const all = getAllFormData();
+  const out = {};
+  Object.keys(all).forEach(k => {
+    const v = all[k];
+    if (k.startsWith('_')) {
+      if (Array.isArray(v) && v.length) out[k] = v;
+      return;
+    }
+    if (typeof v === 'boolean' && v) out[k] = true;
+    if (typeof v === 'string' && v.trim()) out[k] = v;
+  });
+  out._sharedAt = new Date().toISOString();
+  out._sharedBy = 'klant';
+  return out;
+}
+
+function generateClientSummaryPDF(data) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  let y = 18;
+  doc.setFillColor(90,145,56);
+  doc.rect(0, 0, 210, 18, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(12);
+  doc.text('Veldwerkopdracht aanlevering — Ground Research BV', 10, 11);
+  doc.setTextColor(0,0,0);
+  doc.setFontSize(10);
+  doc.setFont('helvetica','normal');
+  doc.text('Samenvatting klantinvoer', 10, 24);
+  y = 32;
+  Object.entries(data).forEach(([k,v]) => {
+    if (k.startsWith('_')) return;
+    if (y > 285) { doc.addPage(); y = 15; }
+    doc.setFont('helvetica','bold');
+    doc.text(k.replace(/^f_/, ''), 10, y);
+    doc.setFont('helvetica','normal');
+    const txt = String(v);
+    const lines = doc.splitTextToSize(txt, 140);
+    doc.text(lines, 60, y);
+    y += Math.max(6, lines.length * 4 + 1);
+  });
+  doc.save(`Klantaanlevering_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+function generateClientShareCode() {
+  const payload = getFilledFormData();
+  const code = encodeShareData(payload);
+  const overlay = createModal(
+    '✅ Code gegenereerd',
+    `<p style="margin-bottom:8px">Stuur deze code naar Ground Research of gebruik de download knop.</p>
+     <textarea id="clientShareCode" class="share-code-box">${code}</textarea>`,
+    `<button class="btn btn-success" onclick="copyToClipboard(document.getElementById('clientShareCode').value, 'Code gekopieerd')">📋 Kopieer code</button>
+     <button class="btn btn-primary" onclick="generateClientSummaryPDF(decodeShareData(document.getElementById('clientShareCode').value))">📄 Download als PDF</button>`
+  );
+  const ta = overlay.querySelector('#clientShareCode');
+  ta.addEventListener('click', () => ta.select());
+}
+
+function buildKlantShareUrl(project, nr, klant) {
+  const u = new URL(window.location.href);
+  u.search = '';
+  u.searchParams.set('mode', 'klant');
+  if (project) u.searchParams.set('project', project);
+  if (nr) u.searchParams.set('nr', nr);
+  if (klant) u.searchParams.set('klant', klant);
+  return u.toString();
+}
+
+function renderShareLink() {
+  const project = document.getElementById('share_project').value.trim();
+  const nr = document.getElementById('share_nr').value.trim();
+  const klant = document.getElementById('share_klant').value.trim();
+  const url = buildKlantShareUrl(project, nr, klant);
+  document.getElementById('share_url').value = url;
+  const qr = document.getElementById('share_qr');
+  qr.innerHTML = `<img alt="QR" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}">`;
+}
+
+function openShareClientModal() {
+  const p = document.getElementById('f_projectnaam')?.value || '';
+  const nr = document.getElementById('f_projectnummer')?.value || '';
+  const k = document.getElementById('f_klantnaam')?.value || '';
+  createModal(
+    '🔗 Deel met klant',
+    `<div class="form-grid">
+      <div class="form-group"><label>Projectnaam (optioneel)</label><input id="share_project" value="${p.replace(/"/g,'&quot;')}" oninput="renderShareLink()"></div>
+      <div class="form-group"><label>Projectnummer (optioneel)</label><input id="share_nr" value="${nr.replace(/"/g,'&quot;')}" oninput="renderShareLink()"></div>
+      <div class="form-group"><label>Klantnaam (optioneel)</label><input id="share_klant" value="${k.replace(/"/g,'&quot;')}" oninput="renderShareLink()"></div>
+    </div>
+    <div style="margin-top:10px"><input id="share_url" class="share-url-box" readonly></div>
+    <div class="qr-wrap" id="share_qr"></div>`,
+    `<button class="btn btn-success" onclick="copyToClipboard(document.getElementById('share_url').value, 'Link gekopieerd')">📋 Kopieer link</button>`
+  );
+  renderShareLink();
+}
+
+function openImportClientDataModal() {
+  createModal(
+    '📥 Importeer klantdata',
+    `<div class="form-group form-full">
+      <label>Plak hier de code van de klant</label>
+      <textarea id="import_client_code" rows="8" class="share-code-box" placeholder="Plak hier de code..."></textarea>
+    </div>`,
+    `<button class="btn btn-primary" onclick="importClientData()">Importeren</button>`
+  );
+}
+
+function importClientData() {
+  try {
+    const code = (document.getElementById('import_client_code').value || '').trim();
+    if (!code) return showStatus('Geen code ingevuld', 'error');
+    const data = decodeShareData(code);
+    setAllFormData(data);
+    const count = Object.keys(data).filter(k => !k.startsWith('_')).length;
+    showStatus(`✅ Klantdata geïmporteerd (${count} velden)`, 'success');
+    document.querySelector('.modal-overlay')?.remove();
+  } catch (e) {
+    showStatus('Ongeldige klantcode: ' + e.message, 'error');
+  }
+}
+
+function initKlantMode() {
+  const params = new URLSearchParams(window.location.search);
+  isKlantMode = (params.get('mode') || '').toLowerCase() === 'klant';
+  if (!isKlantMode) return;
+  document.body.classList.add('klant-mode');
+
+  const project = params.get('project');
+  const klant = params.get('klant');
+  const nr = params.get('nr');
+  if (project && document.getElementById('f_projectnaam') && !document.getElementById('f_projectnaam').value) document.getElementById('f_projectnaam').value = project;
+  if (klant && document.getElementById('f_klantnaam') && !document.getElementById('f_klantnaam').value) document.getElementById('f_klantnaam').value = klant;
+  if (nr && document.getElementById('f_projectnummer') && !document.getElementById('f_projectnummer').value) document.getElementById('f_projectnummer').value = nr;
 }
 
 function delRow(btn) {
@@ -2651,15 +2857,18 @@ function getSigDataUrl(id) {
 // === INIT ===
 setupDropzone();
 initSignaturePads();
+initKlantMode();
 
 // Auto-load from storage on page load
 window.addEventListener('load', () => {
-  const raw = localStorage.getItem('veldwerk_brl_data');
-  if (raw) {
-    try {
-      setAllFormData(JSON.parse(raw));
-      showStatus('Vorige sessie automatisch geladen', 'info');
-    } catch(e) {}
+  if (!isKlantMode) {
+    const raw = localStorage.getItem('veldwerk_brl_data');
+    if (raw) {
+      try {
+        setAllFormData(JSON.parse(raw));
+        showStatus('Vorige sessie automatisch geladen', 'info');
+      } catch(e) {}
+    }
   }
   // Set today's date if empty
   const d1 = document.getElementById('f_kwal_datum1');
@@ -2668,6 +2877,7 @@ window.addEventListener('load', () => {
 
 // Auto-save every 30 seconds
 setInterval(() => {
+  if (isKlantMode) return;
   const data = getAllFormData();
   localStorage.setItem('veldwerk_brl_data', JSON.stringify(data));
 }, 30000);
