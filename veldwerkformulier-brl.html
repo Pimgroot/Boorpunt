@@ -1009,55 +1009,96 @@ function parseTextFields(text, sourceLabel, extraMeta) {
   const t = text.replace(/\r\n/g, '\n').replace(/\t+/g, '\t');
   const lines = t.split('\n');
   let parsed = 0;
+  const found = { algemeen:[], vg:[], protocol:[] }; // tracking for preview
 
   function findAfter(label) {
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].toLowerCase().includes(label.toLowerCase())) {
         const idx = lines[i].toLowerCase().indexOf(label.toLowerCase());
-        const after = lines[i].substring(idx + label.length).replace(/^[\s:]+/, '').trim();
-        if (after && after.length > 1 && !after.startsWith('(')) return after;
+        const after = lines[i].substring(idx + label.length).replace(/^[\s:.,]+/, '').trim();
+        if (after && after.length > 1 && !after.startsWith('(') && !/^(zie|see|in te vullen|versie|blad)\b/i.test(after)) return after;
         for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
           const l = lines[j].trim();
-          if (l && l.length > 1 && !l.startsWith('(') && !l.startsWith('Bijvoorbeeld')) return l;
+          if (l && l.length > 1 && !l.startsWith('(') && !l.startsWith('Bijvoorbeeld') && !/^(zie|see|in te vullen|versie|blad)\b/i.test(l)) return l;
         }
       }
     }
     return '';
   }
 
+  // Try multiple aliases, return first match
+  function findFirst(...labels) {
+    for (const label of labels) {
+      const v = findAfter(label);
+      if (v) return v;
+    }
+    return '';
+  }
+
   function setVal(id, val) {
     const el = document.getElementById(id);
-    if (el && val) { el.value = val; parsed++; }
+    if (el && val) { el.value = val; parsed++; return true; }
+    return false;
   }
 
   function setCheck(id, condition) {
     const el = document.getElementById(id);
-    if (el && condition) { el.checked = true; parsed++; }
+    if (el && condition) { el.checked = true; parsed++; return true; }
+    return false;
   }
 
   const tl = t.toLowerCase();
 
-  // Algemene gegevens
-  setVal('f_projectnaam', findAfter('Projectnaam TerraIndex') || findAfter('Projectnaam'));
-  let projNr = findAfter('Projectnummer TerraIndex');
-  if (!projNr) projNr = findAfter('Projectnummer');
-  setVal('f_projectnummer', projNr);
-  setVal('f_projectleider', findAfter('Projectleider volgens Oracle') || findAfter('Projectleider'));
-  let contactBrl = findAfter('Contactpers. kantoor');
-  if (!contactBrl) contactBrl = findAfter('Contactpersoon kantoor');
-  setVal('f_contactpersoon_brl', contactBrl);
-  setVal('f_klantnaam', findAfter('Klantnaam') || findAfter('Opdrachtgever'));
-  setVal('f_locatie', findAfter('Onderzoekslocatie') || findAfter('Locatie'));
-  setVal('f_contact_locatie', findAfter('Contactpersoon op locatie'));
-  setVal('f_veldwerkers', findAfter('Veldwerker(s)') || findAfter('Veldwerkers') || findAfter('Veldwerker'));
-  setVal('f_assistent', findAfter('Veldwerker in opleiding'));
-  setVal('f_uitvoeringsperiode', findAfter('Uitvoeringsperiode'));
-  setVal('f_laboratorium', findAfter('Laboratorium'));
-  setVal('f_tijdsafspraak', findAfter('Tijdsafspraak'));
+  // === ALGEMENE GEGEVENS (met veel aliassen voor verschillende klanten) ===
+  let v;
+  v = findFirst('Projectnaam TerraIndex','Projectnaam','Projectomschrijving','Project ');
+  if (setVal('f_projectnaam', v)) found.algemeen.push('Projectnaam: '+v);
 
-  // Spoed
-  if (tl.includes('spoed') && (tl.includes('ja') || tl.match(/spoed[^.]*ja/))) {
+  v = findFirst('Projectnummer TerraIndex','Projectnummer','Projectnr.','Projectnr','Project nummer','Proj.nr');
+  if (setVal('f_projectnummer', v)) found.algemeen.push('Projectnummer: '+v);
+
+  v = findFirst('Asbestprojectleider','Projectleider volgens Oracle','Projectleider','PL ');
+  if (setVal('f_projectleider', v)) found.algemeen.push('Projectleider: '+v);
+
+  v = findFirst('Contactpers. kantoor','Contactpersoon kantoor','Contactpersoon Antea','Contactpersoon ');
+  if (setVal('f_contactpersoon_brl', v)) found.algemeen.push('Contact BRL: '+v);
+
+  v = findFirst('Klantnaam','Opdrachtgever','Klant','Client');
+  if (setVal('f_klantnaam', v)) found.algemeen.push('Klant: '+v);
+
+  v = findFirst('Adres onderzoekslocatie','Onderzoekslocatie','Onderzoeksadres','Locatie','Adres ');
+  if (setVal('f_locatie', v)) found.algemeen.push('Locatie: '+v);
+
+  v = findFirst('Contactpersoon op locatie','Contactpersoon locatie','Melden bij');
+  if (setVal('f_contact_locatie', v)) found.algemeen.push('Contact locatie: '+v);
+
+  v = findFirst('Uitvoerenden','Veldwerker(s)','Veldwerkers','Veldwerker','Bemonsterd door');
+  if (setVal('f_veldwerkers', v)) found.algemeen.push('Veldwerker: '+v);
+
+  v = findFirst('Veldwerker in opleiding','Assistent');
+  if (setVal('f_assistent', v)) found.algemeen.push('Assistent: '+v);
+
+  v = findFirst('Uitvoeringsperiode','Planning','Datum','In week');
+  if (setVal('f_uitvoeringsperiode', v)) found.algemeen.push('Periode: '+v);
+
+  // Lab detectie — match tegen bekende labs
+  v = findFirst('Laboratorium','Lab ');
+  if (!v) {
+    // Zoek bekende labnamen in de tekst
+    const labs = ['Eurofins Omegam','Eurofins Analytico','SGS','Alwest','AL-West','Eurofins'];
+    for (const lab of labs) {
+      if (tl.includes(lab.toLowerCase())) { v = lab; break; }
+    }
+  }
+  if (setVal('f_laboratorium', v)) found.algemeen.push('Lab: '+v);
+
+  v = findFirst('Tijdsafspraak');
+  setVal('f_tijdsafspraak', v);
+
+  // Spoed detectie (meerdere patronen)
+  if (tl.match(/spoed\s*(:|\b)\s*ja/) || tl.match(/spoed\b[^\n]{0,20}\bja\b/)) {
     setVal('f_spoed_lab', 'ja');
+    found.algemeen.push('Spoed: Ja');
   }
 
   // Type onderzoek
@@ -1067,11 +1108,18 @@ function parseTextFields(text, sourceLabel, extraMeta) {
   setCheck('f_nen5897', tl.includes('nen 5897') || tl.includes('nen5897'));
   setCheck('f_crow210', tl.includes('crow 210'));
 
-  // Formulieren
-  setCheck('f_form2001', tl.includes('formulier protocol 2001') || tl.includes('protocol 2001'));
-  setCheck('f_form2002', tl.includes('formulier protocol 2002') || tl.includes('protocol 2002'));
-  setCheck('f_form2003', tl.includes('formulier protocol 2003') || tl.includes('protocol 2003'));
-  setCheck('f_form2018', tl.includes('formulier protocol 2018') || tl.includes('protocol 2018'));
+  // Protocol detectie (breed: meerdere patronen per protocol)
+  const has2001 = /protocol\s*2001|handboringen|peilbuizen.*grondmonster/i.test(t);
+  const has2002 = /protocol\s*2002|grondwaterbemonstering|waterbemonstering|grondwatermonster/i.test(t);
+  const has2003 = /protocol\s*2003|waterbodem/i.test(t);
+  const has2018 = /protocol\s*2018|maaiveldinspectie|asbest.*bodem/i.test(t);
+  const has2100 = /protocol\s*2100|mechanisch boren/i.test(t);
+  if (setCheck('f_form2001', has2001)) found.protocol.push('Protocol 2001 gedetecteerd');
+  if (setCheck('f_form2002', has2002)) found.protocol.push('Protocol 2002 gedetecteerd');
+  if (setCheck('f_form2003', has2003)) found.protocol.push('Protocol 2003 gedetecteerd');
+  if (setCheck('f_form2018', has2018)) found.protocol.push('Protocol 2018 gedetecteerd');
+  if (document.getElementById('f_form2100')) setCheck('f_form2100', has2100);
+  if (has2100) found.protocol.push('Protocol 2100 gedetecteerd');
 
   // Werkomschrijving
   let werkOmschr = '';
@@ -1114,8 +1162,8 @@ function parseTextFields(text, sourceLabel, extraMeta) {
   setCheck('f_tox_geen', tl.includes('geen verontreinigingen'));
   setCheck('f_tox_anders', tl.includes('toxische stoffen anders') || tl.includes('stoffen: anders'));
 
-  // Meetinstrumenten
-  setCheck('f_mi_pid', tl.includes('pid-meter') || tl.includes('pid meter') || tl.includes('pid'));
+  // Meetinstrumenten (bredere detectie)
+  if (setCheck('f_mi_pid', /\bpid\b/i.test(t) || tl.includes('pid-meter') || tl.includes('pid-metingen'))) found.vg.push('PID-meter');
 
   // PBM
   setCheck('f_pbm_overall', tl.includes('overall'));
@@ -1124,27 +1172,62 @@ function parseTextFields(text, sourceLabel, extraMeta) {
   setCheck('f_pbm_helm', tl.includes('helm'));
   setCheck('f_pbm_bril', tl.includes('veiligheidsbril'));
 
-  // K&L
-  setCheck('f_kl_klic', tl.includes('klic'));
+  // K&L (meer patronen)
+  if (setCheck('f_kl_klic', tl.includes('klic') || tl.includes('klic-tekening') || tl.includes('graafmelding'))) found.vg.push('KLIC');
   setCheck('f_oo_onverdacht', tl.includes('onverdacht'));
+  setCheck('f_oo_verdacht', tl.includes('oo verdacht') || /oo.*verdacht/i.test(t));
+
+  // Afwijking detectie Protocol 2002
+  if (/afgeweken van.*(brl|protocol)\s*2002/i.test(t) || /afwijking.*protocol\s*2002/i.test(t)) {
+    if (/afgeweken.*ja/i.test(t) || /afwijking.*ja/i.test(t)) {
+      setVal('f_2002_afwijking', 'ja');
+      found.protocol.push('Afwijking Protocol 2002: Ja');
+    }
+  }
+
+  // Foto's
+  if (setCheck('f_2001_fotos', /foto.*maken/i.test(t) || /foto's/i.test(t))) found.protocol.push("Foto's maken");
 
   // Noodcontact
   setVal('f_hvk', findAfter('Hogere veiligheidskundige'));
   setVal('f_ehbo', findAfter('Dichtstbijzijnde huisarts'));
 
-  // Protocol 2001 details
-  let boorInfo = findAfter('Boringen');
-  if (boorInfo) {
+  // Protocol 2001 details — boring extractie (meerdere patronen)
+  const boorPatterns = t.match(/(\d+)\s*boring\(?en?\)?\s*tot\s*([\d,.]+)\s*m?/gi) || [];
+  const boorRows = [];
+  boorPatterns.forEach(match => {
+    const m = match.match(/(\d+)\s*boring\(?en?\)?\s*tot\s*([\d,.]+)/i);
+    if (m) boorRows.push({ boringen: m[1]+' tot '+m[2]+' m-mv' });
+  });
+  if (boorRows.length) {
+    const tbody = document.querySelector('#table2001 tbody');
+    boorRows.forEach((row, i) => {
+      if (i > 0 && i >= tbody.children.length) addRow2001();
+      const tr = tbody.children[i];
+      if (tr) {
+        const inp = tr.querySelector('input[data-field="boringen"]');
+        if (inp) { inp.value = row.boringen; parsed++; }
+      }
+    });
+    found.protocol.push('Boringen: '+boorRows.map(r=>r.boringen).join(', '));
+  }
+  // Codering / analysepakket
+  let codering = findAfter('Codering');
+  let analysepakket = findFirst('Analysepakket','Analyse');
+  if (codering || analysepakket) {
     const row1 = document.querySelector('#table2001 tbody tr');
     if (row1) {
       const inputs = row1.querySelectorAll('input');
-      let codering = findAfter('Codering');
-      let analysepakket = findAfter('Analysepakket');
-      if (codering) { inputs[4].value = codering; parsed++; }
-      if (analysepakket) { inputs[5].value = analysepakket; parsed++; }
+      if (codering && inputs[4]) { inputs[4].value = codering; parsed++; }
+      if (analysepakket && inputs[5]) { inputs[5].value = analysepakket; parsed++; }
     }
   }
-
+  // Grondwaterstand
+  const gwsMatch = t.match(/grondwaterstand\s*[:.]?\s*(?:ca\.?\s*)?([\d,.]+)\s*m/i);
+  if (gwsMatch) {
+    setVal('f_2001_gwstand', gwsMatch[1]);
+    found.protocol.push('Grondwaterstand: ca. '+gwsMatch[1]+' m');
+  }
   // Verhardingen
   let onverhard = findAfter('boringen onverhard');
   if (onverhard && !isNaN(parseInt(onverhard))) setVal('f_2001_onverhard', parseInt(onverhard));
@@ -1158,10 +1241,10 @@ function parseTextFields(text, sourceLabel, extraMeta) {
   setCheck('f_2001_volledig', tl.includes('volledig profiel'));
   setCheck('f_2001_representatief', tl.includes('representatieve lagen'));
 
-  // Inmeting
-  setCheck('f_2001_meetlint', tl.includes('meetwiel') || tl.includes('meetlint'));
-  setCheck('f_2001_gps', tl.includes('rtk-gps') || tl.includes('topcon'));
-  setCheck('f_2001_gps_telefoon', tl.includes('gps telefoon') || tl.includes('gps tablet'));
+  // Inmeting (meer aliassen)
+  if (setCheck('f_2001_meetlint', tl.includes('meetwiel') || tl.includes('meetlint'))) found.protocol.push('Inmeting: Meetlint');
+  if (setCheck('f_2001_gps', tl.includes('rtk-gps') || tl.includes('topcon') || /gps.*nodig/i.test(t))) found.protocol.push('Inmeting: RTK-GPS');
+  if (setCheck('f_2001_gps_telefoon', tl.includes('gps telefoon') || tl.includes('gps tablet'))) found.protocol.push('Inmeting: GPS telefoon');
 
   // Protocol 2018 toelichting
   let toel2018 = '';
@@ -1205,7 +1288,7 @@ function parseTextFields(text, sourceLabel, extraMeta) {
     }
   }
 
-  // Show parse result
+  // Show detailed parse result per sectie
   const pr = document.getElementById('parseResult');
   pr.style.display = 'block';
   let metaHtml = '';
@@ -1216,7 +1299,11 @@ function parseTextFields(text, sourceLabel, extraMeta) {
     if (extraMeta.subject) metaHtml += `<b>Onderwerp:</b> ${extraMeta.subject}`;
     metaHtml += '</div>';
   }
-  pr.innerHTML = `<b>✅ ${sourceLabel} verwerkt</b> ${getFileTypeBadge(sourceLabel.toLowerCase())} — <span class="parse-count">${parsed} velden</span> automatisch ingevuld. Controleer en vul ontbrekende velden handmatig aan.${metaHtml}`;
+  let detailHtml = '';
+  if (found.algemeen.length) detailHtml += '<div style="margin-top:8px"><b>📝 Algemeen:</b><br>' + found.algemeen.map(f=>'&nbsp;&nbsp;✓ '+f).join('<br>') + '</div>';
+  if (found.vg.length) detailHtml += '<div style="margin-top:4px"><b>⚠️ V&G:</b><br>' + found.vg.map(f=>'&nbsp;&nbsp;✓ '+f).join('<br>') + '</div>';
+  if (found.protocol.length) detailHtml += '<div style="margin-top:4px"><b>🔩 Protocol:</b><br>' + found.protocol.map(f=>'&nbsp;&nbsp;✓ '+f).join('<br>') + '</div>';
+  pr.innerHTML = `<b>✅ ${sourceLabel} verwerkt</b> ${getFileTypeBadge(sourceLabel.toLowerCase())} — <span class="parse-count">${parsed} velden</span> automatisch ingevuld. Controleer en vul ontbrekende velden handmatig aan.${metaHtml}${detailHtml}`;
   showStatus(`${sourceLabel} succesvol verwerkt — ${parsed} velden ingevuld`, 'success');
 }
 
