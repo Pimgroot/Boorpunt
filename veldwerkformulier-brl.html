@@ -111,6 +111,12 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
 .preview-section{margin:12px 0}
 .preview-section h4{font-size:13px;color:#1e3a5f;margin-bottom:6px;border-bottom:1px solid #ddd;padding-bottom:4px}
 
+/* Signature canvas */
+.sig-canvas{border:1px solid #ccc;border-radius:4px;background:#fafafa;width:100%;height:80px;cursor:crosshair;touch-action:none}
+.sig-clear{background:none;border:1px solid #c62828;color:#c62828;border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;margin-left:8px;font-weight:600}
+.sig-clear:hover{background:#ffebee}
+.sig-meta{font-size:10px;color:#888;margin-top:3px;font-style:italic}
+
 @media(max-width:600px){
   h1.header{padding:12px 16px;font-size:15px}
   .container{padding:8px}
@@ -766,8 +772,9 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
       </div>
       <div class="form-group"><label>Bedrijf</label><input id="f_kwal_bedrijf1" value="Ground Research"></div>
       <div class="form-group"><label>Datum uitvoering</label><input id="f_kwal_datum1" type="date"></div>
-      <div class="form-group"><label>Handtekening</label>
-        <div style="border:1px solid #ccc;border-radius:4px;height:60px;background:#fafafa"></div>
+      <div class="form-group form-full"><label>Handtekening <button class="sig-clear" onclick="clearSig('sig1')">✕ Wissen</button></label>
+        <canvas id="sig1" class="sig-canvas" width="400" height="80"></canvas>
+        <div class="sig-meta" id="sig1_meta"></div>
       </div>
     </div>
 
@@ -790,8 +797,9 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
       </div>
       <div class="form-group"><label>Bedrijf</label><input id="f_kwal_bedrijf2" value="Ground Research"></div>
       <div class="form-group"><label>Datum uitvoering</label><input id="f_kwal_datum2" type="date"></div>
-      <div class="form-group"><label>Handtekening</label>
-        <div style="border:1px solid #ccc;border-radius:4px;height:60px;background:#fafafa"></div>
+      <div class="form-group form-full"><label>Handtekening <button class="sig-clear" onclick="clearSig('sig2')">✕ Wissen</button></label>
+        <canvas id="sig2" class="sig-canvas" width="400" height="80"></canvas>
+        <div class="sig-meta" id="sig2_meta"></div>
       </div>
     </div>
 
@@ -814,8 +822,9 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
       </div>
       <div class="form-group"><label>Bedrijf</label><input id="f_kwal_bedrijf3" value="Ground Research"></div>
       <div class="form-group"><label>Datum uitvoering</label><input id="f_kwal_datum3" type="date"></div>
-      <div class="form-group"><label>Handtekening</label>
-        <div style="border:1px solid #ccc;border-radius:4px;height:60px;background:#fafafa"></div>
+      <div class="form-group form-full"><label>Handtekening <button class="sig-clear" onclick="clearSig('sig3')">✕ Wissen</button></label>
+        <canvas id="sig3" class="sig-canvas" width="400" height="80"></canvas>
+        <div class="sig-meta" id="sig3_meta"></div>
       </div>
     </div>
 
@@ -838,8 +847,9 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
       </div>
       <div class="form-group"><label>Bedrijf</label><input id="f_kwal_bedrijf4" value="Ground Research"></div>
       <div class="form-group"><label>Datum uitvoering</label><input id="f_kwal_datum4" type="date"></div>
-      <div class="form-group"><label>Handtekening</label>
-        <div style="border:1px solid #ccc;border-radius:4px;height:60px;background:#fafafa"></div>
+      <div class="form-group form-full"><label>Handtekening <button class="sig-clear" onclick="clearSig('sig4')">✕ Wissen</button></label>
+        <canvas id="sig4" class="sig-canvas" width="400" height="80"></canvas>
+        <div class="sig-meta" id="sig4_meta"></div>
       </div>
     </div>
 
@@ -849,8 +859,9 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
         <select id="f_kwal_projectleider"><option value="">— Selecteer —</option><option>Pim Groot</option><option>Sander de Roo</option><option>Anders...</option></select>
       </div>
       <div class="form-group"><label>Datum</label><input id="f_kwal_pl_datum" type="date"></div>
-      <div class="form-group"><label>Handtekening</label>
-        <div style="border:1px solid #ccc;border-radius:4px;height:60px;background:#fafafa"></div>
+      <div class="form-group form-full"><label>Handtekening <button class="sig-clear" onclick="clearSig('sig_pl')">✕ Wissen</button></label>
+        <canvas id="sig_pl" class="sig-canvas" width="400" height="80"></canvas>
+        <div class="sig-meta" id="sig_pl_meta"></div>
       </div>
     </div>
   </div>
@@ -1597,6 +1608,11 @@ function getAllFormData() {
   data._table2002 = getTableData('table2002');
   data._table2003 = getTableData('table2003');
   data._currentProtocol = currentProtocol;
+  // Save signatures
+  data._signatures = {};
+  SIG_IDS.forEach(id => {
+    if (sigData[id]) data._signatures[id] = sigData[id];
+  });
   return data;
 }
 
@@ -1627,6 +1643,29 @@ function setAllFormData(data) {
   if (data._currentProtocol) {
     const btn = document.querySelector(`.proto-btn[onclick*="${data._currentProtocol}"]`);
     if (btn) selectProtocol(data._currentProtocol, btn);
+  }
+  // Restore signatures
+  if (data._signatures) {
+    SIG_IDS.forEach(id => {
+      if (data._signatures[id]) {
+        sigData[id] = data._signatures[id];
+        const canvas = document.getElementById(id);
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          const img = new Image();
+          img.onload = () => {
+            const rect = canvas.getBoundingClientRect();
+            ctx.drawImage(img, 0, 0, rect.width, rect.height);
+          };
+          img.src = data._signatures[id].dataUrl;
+        }
+        const meta = document.getElementById(id + '_meta');
+        if (meta && data._signatures[id].timestamp) {
+          const n = data._signatures[id].naam;
+          meta.textContent = n ? `Getekend door ${n} op ${data._signatures[id].timestamp}` : `Getekend op ${data._signatures[id].timestamp}`;
+        }
+      }
+    });
   }
 }
 
@@ -1862,57 +1901,47 @@ function generatePDF() {
   }
 
   function drawKwaliboSection() {
-    checkPage(50);
+    checkPage(80);
     drawSectionTitle('KWALIBO-VERKLARING ONAFHANKELIJKHEID');
-    
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    const verklaring = 'De hieronder genoemde medewerker verklaart dat het milieukundig veldwerk onafhankelijk van de opdrachtgever is uitgevoerd conform de eisen van de BRL SIKB 2000 en de daarbij horende protocollen.';
-    const lines = doc.splitTextToSize(verklaring, CW);
-    doc.text(lines, M, y + 3);
-    y += lines.length * 3.5 + 4;
-
-    // Veldwerker 1
-    const naam1 = gv('f_kwal_naam1');
-    const functie1 = gv('f_kwal_functie1');
-    const bedrijf1 = gv('f_kwal_bedrijf1');
-    const datum1 = gv('f_kwal_datum1');
-
-    if (naam1) {
-      drawFieldRow([
-        { label: 'Naam:', value: naam1 },
-        { label: 'Functie:', value: functie1 },
-        { label: 'Bedrijf:', value: bedrijf1 }
-      ]);
-      drawFieldRow([
-        { label: 'Datum uitvoering:', value: datum1 },
-        { label: 'Datum ondertekening:', value: new Date().toLocaleDateString('nl-NL') },
-        { label: 'Ondertekening:', value: '________________' }
-      ]);
-
-      // Protocols
-      const protos = [];
-      if (gc('f_kwal_2001')) protos.push('2001');
-      if (gc('f_kwal_2002')) protos.push('2002');
-      if (gc('f_kwal_2003')) protos.push('2003');
-      if (gc('f_kwal_2018')) protos.push('2018');
-      drawField('Protocollen:', protos.join(', ') || '—');
-    }
-
-    // Veldwerker 2
-    const naam2 = gv('f_kwal_naam2');
-    if (naam2) {
+    const vw = [1,2,3,4];
+    vw.forEach(i => {
+      const naam = gv('f_kwal_naam'+i);
+      if (!naam) return;
+      drawFieldRow([{label:'Veldwerker '+i, value: naam},{label:'Functie', value: gv('f_kwal_functie'+i)},{label:'Bedrijf', value: gv('f_kwal_bedrijf'+i)}]);
+      drawFieldRow([{label:'Datum uitvoering', value: gv('f_kwal_datum'+i)},{label:'Protocollen', value: ['2001','2002','2003','2018','2100'].filter(p=>gc('f_kwal_p'+i+'_'+p)).join(', ') || '—'}]);
+      // Add signature to PDF
+      const sd = sigData['sig'+i];
+      if (sd && sd.dataUrl) {
+        checkPage(25);
+        doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...BLUE);
+        doc.text('Handtekening:', M, y+3);
+        doc.setTextColor(0,0,0); doc.setFont('helvetica','normal');
+        try { doc.addImage(sd.dataUrl, 'PNG', M+25, y-2, 50, 15); } catch(e){}
+        doc.setFontSize(6); doc.setTextColor(150,150,150);
+        doc.text(sd.timestamp ? 'Getekend: '+sd.timestamp : '', M+80, y+8);
+        doc.setTextColor(0,0,0);
+        y += 18;
+      }
       y += 3;
-      drawFieldRow([
-        { label: 'Naam:', value: naam2 },
-        { label: 'Functie:', value: gv('f_kwal_functie2') },
-        { label: 'Bedrijf:', value: gv('f_kwal_bedrijf2') }
-      ]);
-      drawFieldRow([
-        { label: 'Datum uitvoering:', value: gv('f_kwal_datum2') },
-        { label: 'Datum ondertekening:', value: '___/___/______' },
-        { label: 'Ondertekening:', value: '________________' }
-      ]);
+    });
+    // Projectleider
+    const plNaam = gv('f_kwal_projectleider');
+    if (plNaam) {
+      drawFieldRow([{label:'Projectleider', value: plNaam},{label:'Datum', value: gv('f_kwal_pl_datum')}]);
+      const sdPl = sigData['sig_pl'];
+      if (sdPl && sdPl.dataUrl) {
+        checkPage(25);
+        doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...BLUE);
+        doc.text('Handtekening:', M, y+3);
+        doc.setTextColor(0,0,0); doc.setFont('helvetica','normal');
+        try { doc.addImage(sdPl.dataUrl, 'PNG', M+25, y-2, 50, 15); } catch(e){}
+        doc.setFontSize(6); doc.setTextColor(150,150,150);
+        doc.text(sdPl.timestamp ? 'Getekend: '+sdPl.timestamp : '', M+80, y+8);
+        doc.setTextColor(0,0,0);
+        y += 18;
+      }
+    } else {
+      drawFieldRow([{label:'Projectleider', value: gv('f_kwal_projectleider')},{label:'Datum', value: gv('f_kwal_pl_datum')}]);
     }
   }
 
@@ -2388,8 +2417,150 @@ function generatePDF() {
   showStatus(`✅ PDF gegenereerd: ${filename}`, 'success');
 }
 
+// === SIGNATURE PADS ===
+const SIG_IDS = ['sig1','sig2','sig3','sig4','sig_pl'];
+const sigData = {}; // {id: {dataUrl, timestamp, naam}}
+
+function initSignaturePads() {
+  SIG_IDS.forEach(id => {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let lastX, lastY;
+
+    // Resize canvas to actual display size
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      ctx.strokeStyle = '#1e3a5f';
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      // Restore if we have saved data
+      if (sigData[id] && sigData[id].dataUrl) {
+        const img = new Image();
+        img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height);
+        img.src = sigData[id].dataUrl;
+      }
+    }
+    resizeCanvas();
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches ? e.touches[0] : e;
+      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+    }
+
+    function startDraw(e) {
+      e.preventDefault();
+      drawing = true;
+      const pos = getPos(e);
+      lastX = pos.x; lastY = pos.y;
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      const pos = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      lastX = pos.x; lastY = pos.y;
+    }
+
+    function endDraw(e) {
+      if (!drawing) return;
+      drawing = false;
+      saveSig(id);
+    }
+
+    // Mouse events
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', endDraw);
+    canvas.addEventListener('mouseleave', endDraw);
+    // Touch events
+    canvas.addEventListener('touchstart', startDraw, {passive:false});
+    canvas.addEventListener('touchmove', draw, {passive:false});
+    canvas.addEventListener('touchend', endDraw);
+    canvas.addEventListener('touchcancel', endDraw);
+
+    // Handle resize
+    window.addEventListener('resize', () => { setTimeout(resizeCanvas, 100); });
+  });
+}
+
+function saveSig(id) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const dataUrl = canvas.toDataURL('image/png');
+  const now = new Date();
+  const timestamp = now.toLocaleDateString('nl-NL') + ' ' + now.toLocaleTimeString('nl-NL', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  
+  // Determine signer name
+  let naam = '';
+  const idx = SIG_IDS.indexOf(id);
+  if (idx >= 0 && idx < 4) {
+    const sel = document.getElementById('f_kwal_naam' + (idx+1));
+    if (sel) naam = sel.value;
+  } else if (id === 'sig_pl') {
+    const sel = document.getElementById('f_kwal_projectleider');
+    if (sel) naam = sel.value;
+  }
+
+  sigData[id] = { dataUrl, timestamp, naam };
+  
+  // Show metadata
+  const meta = document.getElementById(id + '_meta');
+  if (meta) {
+    meta.textContent = naam ? `Getekend door ${naam} op ${timestamp}` : `Getekend op ${timestamp}`;
+  }
+
+  // Log to signature log in localStorage
+  logSignature(id, naam, timestamp);
+}
+
+function clearSig(id) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  sigData[id] = null;
+  const meta = document.getElementById(id + '_meta');
+  if (meta) meta.textContent = '';
+}
+
+function logSignature(sigId, naam, timestamp) {
+  try {
+    const logs = JSON.parse(localStorage.getItem('veldwerk_sig_log') || '[]');
+    logs.push({
+      sigId,
+      naam: naam || 'onbekend',
+      timestamp,
+      project: document.getElementById('f_projectnaam') ? document.getElementById('f_projectnaam').value : '',
+      projectnummer: document.getElementById('f_projectnummer') ? document.getElementById('f_projectnummer').value : '',
+      loggedAt: new Date().toISOString()
+    });
+    // Keep last 500 entries
+    if (logs.length > 500) logs.splice(0, logs.length - 500);
+    localStorage.setItem('veldwerk_sig_log', JSON.stringify(logs));
+  } catch(e) {}
+}
+
+function getSigDataUrl(id) {
+  return sigData[id] ? sigData[id].dataUrl : null;
+}
+
 // === INIT ===
 setupDropzone();
+initSignaturePads();
 
 // Auto-load from storage on page load
 window.addEventListener('load', () => {
