@@ -165,6 +165,7 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
     <div class="proto-select" id="protoSelect">
       <button class="proto-btn active" onclick="selectProtocol('2001',this)">Protocol 2001<br><small>Handboringen & peilbuizen</small></button>
       <button class="proto-btn" onclick="selectProtocol('2002',this)">Protocol 2002<br><small>Monsterneming grondwater</small></button>
+      <button class="proto-btn" onclick="selectProtocol('2003',this)">Protocol 2003<br><small>Veldwerk waterbodem</small></button>
       <button class="proto-btn" onclick="selectProtocol('2018',this)">Protocol 2018<br><small>Maaiveldinspectie asbest</small></button>
       <button class="proto-btn" onclick="selectProtocol('2100',this)">Protocol 2100<br><small>Mechanisch boren</small></button>
     </div>
@@ -185,11 +186,51 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
       <div class="form-group"><label>Contactpersoon kantoor (BRL)</label><input id="f_contactpersoon_brl" placeholder="Naam + telefoonnummer"></div>
       <div class="form-group"><label>Klantnaam</label><input id="f_klantnaam" placeholder="Opdrachtgever"></div>
       <div class="form-group"><label>Onderzoekslocatie</label><input id="f_locatie" placeholder="Adres en plaatsnaam"></div>
-      <div class="form-group"><label>Contactpersoon locatie</label><input id="f_contact_locatie" placeholder="Naam + tel"></div>
-      <div class="form-group"><label>Veldwerker(s)</label><input id="f_veldwerkers" placeholder="Naam veldwerker(s)"></div>
+      <div class="form-group"><label>Contactpersoon locatie</label>
+        <select id="f_contact_locatie">
+          <option value="">— Selecteer —</option>
+          <option>Sander de Roo</option>
+          <option>Michel Fernandez</option>
+          <option>Steven Dubois</option>
+          <option>Pim Groot</option>
+          <option>Maart-Jan</option>
+          <option>Richard Brink</option>
+          <option>Jeroen Kipp</option>
+          <option>Mark Boon</option>
+          <option>Thijs Schermer</option>
+          <option>Dion Koopman</option>
+          <option>Edsel Welvaart</option>
+          <option>Anders...</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Veldwerker(s)</label>
+        <select id="f_veldwerkers">
+          <option value="">— Selecteer veldwerker —</option>
+          <option>Sander de Roo</option>
+          <option>Michel Fernandez</option>
+          <option>Steven Dubois</option>
+          <option>Pim Groot</option>
+          <option>Maart-Jan</option>
+          <option>Richard Brink</option>
+          <option>Jeroen Kipp</option>
+          <option>Mark Boon</option>
+          <option>Thijs Schermer</option>
+          <option>Dion Koopman</option>
+          <option>Edsel Welvaart</option>
+          <option>Anders...</option>
+        </select>
+      </div>
       <div class="form-group"><label>Veldwerker in opleiding / assistent</label><input id="f_assistent" placeholder="Naam assistent"></div>
       <div class="form-group"><label>Uitvoeringsperiode</label><input id="f_uitvoeringsperiode" placeholder="dd-mm-jjjj tot dd-mm-jjjj"></div>
-      <div class="form-group"><label>Laboratorium</label><input id="f_laboratorium" placeholder="Bijv. AL-West"></div>
+      <div class="form-group"><label>Laboratorium</label>
+        <select id="f_laboratorium">
+          <option value="">— Selecteer laboratorium —</option>
+          <option>Eurofins Omegam</option>
+          <option>Eurofins Analytico</option>
+          <option>SGS</option>
+          <option>Alwest</option>
+        </select>
+      </div>
       <div class="form-group"><label>Spoed lab</label>
         <select id="f_spoed_lab"><option value="nee">Nee</option><option value="ja">Ja</option></select>
       </div>
@@ -197,7 +238,6 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
         <select id="f_werkvergunning"><option value="nee">Nee</option><option value="ja">Ja</option></select>
       </div>
       <div class="form-group"><label>Tijdsafspraak locatie</label><input id="f_tijdsafspraak" placeholder="Tijdstip of n.v.t."></div>
-      <div class="form-group"><label>Tijdsbesteding (uur)</label><input id="f_tijdsbesteding" type="number" placeholder="Uren"></div>
     </div>
 
     <div class="section-title">Type onderzoek</div>
@@ -206,20 +246,10 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
       <label class="check-item"><input type="checkbox" id="f_nen5740"> NEN 5740</label>
       <label class="check-item"><input type="checkbox" id="f_nen5707"> NEN 5707</label>
       <label class="check-item"><input type="checkbox" id="f_nen5897"> NEN 5897</label>
-      <label class="check-item"><input type="checkbox" id="f_nta5755"> NTA 5755</label>
       <label class="check-item"><input type="checkbox" id="f_crow210"> CROW 210</label>
-      <label class="check-item"><input type="checkbox" id="f_ap04"> AP04 / protocol 1001</label>
-      <label class="check-item"><input type="checkbox" id="f_sikb6000"> BRL SIKB 6000</label>
-      <label class="check-item"><input type="checkbox" id="f_sikb7000"> BRL SIKB 7000</label>
       <label class="check-item"><input type="checkbox" id="f_indicatief"> Geen norm (indicatief)</label>
     </div>
 
-    <div class="section-title">Betreding locatie</div>
-    <div class="check-grid">
-      <label class="check-item"><input type="checkbox" id="f_betr_portier"> Melden bij portier/contactpersoon</label>
-      <label class="check-item"><input type="checkbox" id="f_betr_hekwerk"> Afgesloten hekwerk</label>
-      <label class="check-item"><input type="checkbox" id="f_betr_vrij"> Vrije toegang</label>
-    </div>
 
     <div class="section-title">BRL-formulieren bij deze opdracht</div>
     <div class="check-grid">
@@ -227,6 +257,7 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
       <label class="check-item"><input type="checkbox" id="f_form2002"> Protocol 2002</label>
       <label class="check-item"><input type="checkbox" id="f_form2003"> Protocol 2003</label>
       <label class="check-item"><input type="checkbox" id="f_form2018"> Protocol 2018</label>
+      <label class="check-item"><input type="checkbox" id="f_form2100"> Protocol 2100</label>
     </div>
 
     <div class="section-title">Werkomschrijving</div>
@@ -251,6 +282,14 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
       <label class="check-item"><input type="checkbox" id="f_wo_weg"> Naast een weg</label>
       <label class="check-item"><input type="checkbox" id="f_wo_water"> Naast een watergang</label>
       <label class="check-item"><input type="checkbox" id="f_wo_spoor"> Naast het spoor</label>
+      <label class="check-item"><input type="checkbox" id="f_wo_50km"> Op 50 km weg</label>
+      <label class="check-item"><input type="checkbox" id="f_wo_80km"> Op 80 km weg</label>
+      <label class="check-item"><input type="checkbox" id="f_wo_snelweg"> Op snelweg</label>
+      <label class="check-item"><input type="checkbox" id="f_wo_opspoor"> Op het spoor</label>
+      <label class="check-item"><input type="checkbox" id="f_wo_anders"> Anders</label>
+    </div>
+    <div class="form-group form-full" id="f_wo_anders_wrap" style="margin-top:6px">
+      <textarea id="f_wo_anders_tekst" rows="2" placeholder="Toelichting werkomgeving..."></textarea>
     </div>
 
     <div class="section-title">Te verwachten toxische stoffen</div>
@@ -265,17 +304,18 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
       <label class="check-item"><input type="checkbox" id="f_tox_vocl"> VOCl [CR]</label>
       <label class="check-item"><input type="checkbox" id="f_tox_pfas"> PFAS [R]</label>
       <label class="check-item"><input type="checkbox" id="f_tox_geen"> Geen verontreinigingen</label>
+      <label class="check-item"><input type="checkbox" id="f_tox_anders"> Anders</label>
+    </div>
+    <div class="form-group form-full" id="f_tox_anders_wrap" style="margin-top:6px">
+      <textarea id="f_tox_anders_tekst" rows="2" placeholder="Overige stoffen..."></textarea>
     </div>
 
     <div class="section-title">Meetinstrumenten</div>
     <div class="check-grid">
-      <label class="check-item"><input type="checkbox" id="f_mi_pid_vox"> PID-meter VOx</label>
-      <label class="check-item"><input type="checkbox" id="f_mi_pid_benz"> PID-meter benzeen</label>
-      <label class="check-item"><input type="checkbox" id="f_mi_exox"> Explosiemeter (Ex/Ox)</label>
+      <label class="check-item"><input type="checkbox" id="f_mi_pid"> PID-meter</label>
       <label class="check-item"><input type="checkbox" id="f_mi_vocht"> Bodemvochtmeter</label>
       <label class="check-item"><input type="checkbox" id="f_mi_cat"> CAT-scan (kabeldetector)</label>
       <label class="check-item"><input type="checkbox" id="f_mi_h2s"> H2S-pieper</label>
-      <label class="check-item"><input type="checkbox" id="f_mi_kwik"> Kwikdampmeter</label>
     </div>
 
     <div class="section-title">PBM's</div>
@@ -291,6 +331,8 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
       <label class="check-item"><input type="checkbox" id="f_pbm_halfgelaat"> Halfgelaatsmasker</label>
       <label class="check-item"><input type="checkbox" id="f_pbm_volgelaat"> Volgelaatsmasker</label>
       <label class="check-item"><input type="checkbox" id="f_pbm_abek"> Filter ABEK-P3</label>
+      <label class="check-item"><input type="checkbox" id="f_pbm_reddingsvest"> Reddingsvest</label>
+      <label class="check-item"><input type="checkbox" id="f_pbm_actiewagen"> Actiewagen</label>
     </div>
 
     <div class="section-title">Kabels & leidingen / OO</div>
@@ -324,13 +366,54 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
     <div class="section-title">Uitvoeringsplan</div>
     <table class="form-table" id="table2001">
       <thead>
-        <tr><th>Terreindeel</th><th>Boringen (aantal/diepte)</th><th>Boringen met peilbuis</th><th>Codering</th><th>Analysepakket</th><th>Opmerkingen</th><th></th></tr>
+        <tr><th>Terreindeel</th><th>Boringen (aantal/diepte)</th><th>Boringen met peilbuis</th><th>Asbestgat</th><th>Codering</th><th>Analysepakket</th><th>Opmerkingen</th><th></th></tr>
       </thead>
       <tbody>
         <tr>
           <td><input data-field="terreindeel"></td>
           <td><input data-field="boringen"></td>
           <td><input data-field="peilbuizen"></td>
+          <td><input data-field="asbestgat"></td>
+          <td><input data-field="codering"></td>
+          <td><input data-field="analysepakket"></td>
+          <td><input data-field="opmerkingen"></td>
+          <td><button class="del-row" onclick="delRow(this)">✕</button></td>
+        </tr>
+        <tr>
+          <td><input data-field="terreindeel"></td>
+          <td><input data-field="boringen"></td>
+          <td><input data-field="peilbuizen"></td>
+          <td><input data-field="asbestgat"></td>
+          <td><input data-field="codering"></td>
+          <td><input data-field="analysepakket"></td>
+          <td><input data-field="opmerkingen"></td>
+          <td><button class="del-row" onclick="delRow(this)">✕</button></td>
+        </tr>
+        <tr>
+          <td><input data-field="terreindeel"></td>
+          <td><input data-field="boringen"></td>
+          <td><input data-field="peilbuizen"></td>
+          <td><input data-field="asbestgat"></td>
+          <td><input data-field="codering"></td>
+          <td><input data-field="analysepakket"></td>
+          <td><input data-field="opmerkingen"></td>
+          <td><button class="del-row" onclick="delRow(this)">✕</button></td>
+        </tr>
+        <tr>
+          <td><input data-field="terreindeel"></td>
+          <td><input data-field="boringen"></td>
+          <td><input data-field="peilbuizen"></td>
+          <td><input data-field="asbestgat"></td>
+          <td><input data-field="codering"></td>
+          <td><input data-field="analysepakket"></td>
+          <td><input data-field="opmerkingen"></td>
+          <td><button class="del-row" onclick="delRow(this)">✕</button></td>
+        </tr>
+        <tr>
+          <td><input data-field="terreindeel"></td>
+          <td><input data-field="boringen"></td>
+          <td><input data-field="peilbuizen"></td>
+          <td><input data-field="asbestgat"></td>
           <td><input data-field="codering"></td>
           <td><input data-field="analysepakket"></td>
           <td><input data-field="opmerkingen"></td>
@@ -375,7 +458,7 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
     <div class="check-grid">
       <label class="check-item"><input type="checkbox" id="f_2001_meetlint"> Meetwiel/meetlint</label>
       <label class="check-item"><input type="checkbox" id="f_2001_gps"> RTK-GPS (Topcon)</label>
-      <label class="check-item"><input type="checkbox" id="f_2001_waterpas"> Waterpassing</label>
+      <label class="check-item"><input type="checkbox" id="f_2001_gps_telefoon"> GPS telefoon / tablet</label>
     </div>
     <div class="form-group" style="margin-top:8px">
       <label>Benodigde nauwkeurigheid</label>
@@ -401,11 +484,14 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
     <span class="toggle">▼</span>
   </div>
   <div class="card-body">
-    <div class="section-title">Bemonsteringsprotocol</div>
-    <div class="check-grid">
-      <label class="check-item"><input type="checkbox" id="f_2002_prot2002" checked> Protocol 2002 (NEN 5744:2023)</label>
-      <label class="check-item"><input type="checkbox" id="f_2002_nta8017"> NTA 8017:2016</label>
-      <label class="check-item"><input type="checkbox" id="f_2002_nen5744_excl"> NEN 5744:2023 excl. troebelheidsmeting</label>
+    <div class="section-title">Afwijking Protocol 2002</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Afwijking Protocol 2002</label>
+        <select id="f_2002_afwijking"><option value="nee">Nee</option><option value="ja">Ja</option></select>
+      </div>
+      <div class="form-group"><label>Zo ja, reden afwijking</label>
+        <textarea id="f_2002_afwijking_reden" rows="2" placeholder="Reden van afwijking..."></textarea>
+      </div>
     </div>
 
     <div class="form-grid" style="margin-top:12px">
@@ -456,6 +542,64 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
   </div>
 </div>
 
+<!-- Protocol 2003 -->
+<div class="card protocol-section" id="section_2003" style="display:none">
+  <div class="card-head" onclick="toggleCard(this)">
+    🌊 Protocol 2003 — Veldwerk bij milieuhygiënisch waterbodemonderzoek
+    <span class="toggle">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">Uitvoeringsplan</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Aantal monsterpunten</label><input id="f_2003_monsterpunten" type="number" placeholder="Aantal"></div>
+      <div class="form-group"><label>Waterdiepte (m)</label><input id="f_2003_waterdiepte" placeholder="Bijv. 1.5"></div>
+      <div class="form-group"><label>Bemonsteringsmethode</label>
+        <select id="f_2003_methode">
+          <option>Steekbuis/happer</option>
+          <option>Van Veen happer</option>
+          <option>Zuigerboor</option>
+          <option>Anders</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Bemonsteringsdiepte waterbodem (m)</label><input id="f_2003_bemonst_diepte" placeholder="Bijv. 0.5"></div>
+    </div>
+
+    <div class="section-title">Details monsterpunten</div>
+    <table class="form-table" id="table2003">
+      <thead>
+        <tr><th>Monsterpunt</th><th>Codering</th><th>Waterdiepte (m)</th><th>Slibdikte (m)</th><th>Analysepakket</th><th>Opmerkingen</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input data-field="monsterpunt"></td>
+          <td><input data-field="codering"></td>
+          <td><input data-field="waterdiepte"></td>
+          <td><input data-field="slibdikte"></td>
+          <td><input data-field="analysepakket"></td>
+          <td><input data-field="opmerkingen"></td>
+          <td><button class="del-row" onclick="delRow(this)">✕</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="add-row" onclick="addRow2003()">+ Rij toevoegen</button>
+
+    <div class="section-title">Afwijking Protocol 2003</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Afwijking Protocol 2003</label>
+        <select id="f_2003_afwijking"><option value="nee">Nee</option><option value="ja">Ja</option></select>
+      </div>
+      <div class="form-group"><label>Zo ja, reden afwijking</label>
+        <textarea id="f_2003_afwijking_reden" rows="2" placeholder="Reden van afwijking..."></textarea>
+      </div>
+    </div>
+
+    <div class="section-title">Toelichting werkzaamheden</div>
+    <div class="form-group form-full">
+      <textarea id="f_2003_toelichting" rows="3" placeholder="Aanleiding, doel, strategie..."></textarea>
+    </div>
+  </div>
+</div>
+
 <!-- Protocol 2018 -->
 <div class="card protocol-section" id="section_2018" style="display:none">
   <div class="card-head" onclick="toggleCard(this)">
@@ -466,6 +610,30 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
     <div class="section-title">Terreininspectie & toelichting</div>
     <div class="form-group form-full">
       <textarea id="f_2018_toelichting" rows="3" placeholder="Aanleiding, doel, strategie, asbestverdacht/onverdacht..."></textarea>
+    </div>
+
+    <div class="section-title">Maaiveld inspectie verslag</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Datum inspectie</label><input id="f_2018_insp_datum" type="date"></div>
+      <div class="form-group"><label>Inspecteur</label><input id="f_2018_inspecteur" placeholder="Naam inspecteur"></div>
+      <div class="form-group"><label>Weersomstandigheden</label>
+        <select id="f_2018_weer"><option>Droog</option><option>Lichte regen</option><option>Regen</option><option>Vorst</option></select>
+      </div>
+      <div class="form-group"><label>Zichtbaarheid</label>
+        <select id="f_2018_zicht"><option>Goed (>50m)</option><option>Matig (<50m)</option><option>Slecht</option></select>
+      </div>
+    </div>
+    <div class="check-grid" style="margin-top:8px">
+      <label class="check-item"><input type="checkbox" id="f_2018_miv_geheel"> Gehele locatie geïnspecteerd</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_miv_bedekking25"> Bedekking <25%</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_miv_bedekking25p"> Bedekking >25%</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_miv_asbest_mv"> Asbestverdacht materiaal op maaiveld</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_miv_puinhoudend"> Puinhoudend</label>
+      <label class="check-item"><input type="checkbox" id="f_2018_miv_opslag"> Materiaalopslag aanwezig</label>
+    </div>
+    <div class="form-group form-full" style="margin-top:8px">
+      <label>Bevindingen maaiveld inspectie</label>
+      <textarea id="f_2018_miv_bevindingen" rows="3" placeholder="Beschrijving bevindingen maaiveld inspectie..."></textarea>
     </div>
 
     <div class="section-title">Uitvoeringsplan</div>
@@ -571,24 +739,6 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
   </div>
 </div>
 
-<!-- Seriecodes & Paraaf -->
-<div class="card">
-  <div class="card-head" onclick="toggleCard(this)">
-    📦 Seriecodes verpakking & Paraaf
-    <span class="toggle">▼</span>
-  </div>
-  <div class="card-body">
-    <div class="form-grid">
-      <div class="form-group"><label>PVC/HDPE geperforeerd</label><input id="f_serie_perf" placeholder="Seriecode"></div>
-      <div class="form-group"><label>PVC/HDPE blind</label><input id="f_serie_blind" placeholder="Seriecode"></div>
-      <div class="form-group"><label>PE-slang</label><input id="f_serie_pe" placeholder="Seriecode"></div>
-      <div class="form-group"><label>Siliconenslang</label><input id="f_serie_siliconen" placeholder="Seriecode"></div>
-      <div class="form-group"><label>Bentoniet (zwelklei)</label><input id="f_serie_bentoniet" placeholder="Seriecode"></div>
-      <div class="form-group"><label>Filtergrind</label><input id="f_serie_filtergrind" placeholder="Seriecode"></div>
-    </div>
-  </div>
-</div>
-
 <!-- Kwalibo verklaring -->
 <div class="card">
   <div class="card-head" onclick="toggleCard(this)">
@@ -596,26 +746,112 @@ h1.header .cert{font-size:10px;font-weight:400;opacity:.6}
     <span class="toggle">▼</span>
   </div>
   <div class="card-body">
-    <div class="form-grid">
-      <div class="form-group"><label>Naam veldwerker 1</label><input id="f_kwal_naam1" placeholder="Naam"></div>
+    <!-- Veldwerker 1 -->
+    <div class="section-title">Veldwerker 1</div>
+    <div class="form-grid" style="grid-template-columns: repeat(4, 1fr)">
+      <div class="form-group"><label>Naam</label>
+        <select id="f_kwal_naam1"><option value="">— Selecteer —</option><option>Sander de Roo</option><option>Michel Fernandez</option><option>Steven Dubois</option><option>Pim Groot</option><option>Maart-Jan</option><option>Richard Brink</option><option>Jeroen Kipp</option><option>Mark Boon</option><option>Thijs Schermer</option><option>Dion Koopman</option><option>Edsel Welvaart</option><option>Anders...</option></select>
+      </div>
+      <div class="form-group"><label>Protocollen uitgevoerd</label>
+        <div class="check-grid" style="margin-top:4px">
+          <label class="check-item"><input type="checkbox" id="f_kwal_p1_2001"> 2001</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p1_2002"> 2002</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p1_2003"> 2003</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p1_2018"> 2018</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p1_2100"> 2100</label>
+        </div>
+      </div>
       <div class="form-group"><label>Functie</label>
         <select id="f_kwal_functie1"><option>Gecertificeerd veldwerker</option><option>Veldwerker in opleiding</option></select>
       </div>
       <div class="form-group"><label>Bedrijf</label><input id="f_kwal_bedrijf1" value="Ground Research"></div>
       <div class="form-group"><label>Datum uitvoering</label><input id="f_kwal_datum1" type="date"></div>
-      <div class="form-group"><label>Naam veldwerker 2</label><input id="f_kwal_naam2" placeholder="Naam (optioneel)"></div>
+      <div class="form-group"><label>Handtekening</label>
+        <div style="border:1px solid #ccc;border-radius:4px;height:60px;background:#fafafa"></div>
+      </div>
+    </div>
+
+    <div class="section-title">Veldwerker 2</div>
+    <div class="form-grid" style="grid-template-columns: repeat(4, 1fr)">
+      <div class="form-group"><label>Naam</label>
+        <select id="f_kwal_naam2"><option value="">— Selecteer —</option><option>Sander de Roo</option><option>Michel Fernandez</option><option>Steven Dubois</option><option>Pim Groot</option><option>Maart-Jan</option><option>Richard Brink</option><option>Jeroen Kipp</option><option>Mark Boon</option><option>Thijs Schermer</option><option>Dion Koopman</option><option>Edsel Welvaart</option><option>Anders...</option></select>
+      </div>
+      <div class="form-group"><label>Protocollen uitgevoerd</label>
+        <div class="check-grid" style="margin-top:4px">
+          <label class="check-item"><input type="checkbox" id="f_kwal_p2_2001"> 2001</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p2_2002"> 2002</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p2_2003"> 2003</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p2_2018"> 2018</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p2_2100"> 2100</label>
+        </div>
+      </div>
       <div class="form-group"><label>Functie</label>
         <select id="f_kwal_functie2"><option>Gecertificeerd veldwerker</option><option>Veldwerker in opleiding</option></select>
       </div>
       <div class="form-group"><label>Bedrijf</label><input id="f_kwal_bedrijf2" value="Ground Research"></div>
       <div class="form-group"><label>Datum uitvoering</label><input id="f_kwal_datum2" type="date"></div>
+      <div class="form-group"><label>Handtekening</label>
+        <div style="border:1px solid #ccc;border-radius:4px;height:60px;background:#fafafa"></div>
+      </div>
     </div>
-    <div class="section-title">Protocollen uitgevoerd</div>
-    <div class="check-grid">
-      <label class="check-item"><input type="checkbox" id="f_kwal_2001"> Protocol 2001</label>
-      <label class="check-item"><input type="checkbox" id="f_kwal_2002"> Protocol 2002</label>
-      <label class="check-item"><input type="checkbox" id="f_kwal_2003"> Protocol 2003</label>
-      <label class="check-item"><input type="checkbox" id="f_kwal_2018"> Protocol 2018</label>
+
+    <div class="section-title">Veldwerker 3</div>
+    <div class="form-grid" style="grid-template-columns: repeat(4, 1fr)">
+      <div class="form-group"><label>Naam</label>
+        <select id="f_kwal_naam3"><option value="">— Selecteer —</option><option>Sander de Roo</option><option>Michel Fernandez</option><option>Steven Dubois</option><option>Pim Groot</option><option>Maart-Jan</option><option>Richard Brink</option><option>Jeroen Kipp</option><option>Mark Boon</option><option>Thijs Schermer</option><option>Dion Koopman</option><option>Edsel Welvaart</option><option>Anders...</option></select>
+      </div>
+      <div class="form-group"><label>Protocollen uitgevoerd</label>
+        <div class="check-grid" style="margin-top:4px">
+          <label class="check-item"><input type="checkbox" id="f_kwal_p3_2001"> 2001</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p3_2002"> 2002</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p3_2003"> 2003</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p3_2018"> 2018</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p3_2100"> 2100</label>
+        </div>
+      </div>
+      <div class="form-group"><label>Functie</label>
+        <select id="f_kwal_functie3"><option>Gecertificeerd veldwerker</option><option>Veldwerker in opleiding</option></select>
+      </div>
+      <div class="form-group"><label>Bedrijf</label><input id="f_kwal_bedrijf3" value="Ground Research"></div>
+      <div class="form-group"><label>Datum uitvoering</label><input id="f_kwal_datum3" type="date"></div>
+      <div class="form-group"><label>Handtekening</label>
+        <div style="border:1px solid #ccc;border-radius:4px;height:60px;background:#fafafa"></div>
+      </div>
+    </div>
+
+    <div class="section-title">Veldwerker 4</div>
+    <div class="form-grid" style="grid-template-columns: repeat(4, 1fr)">
+      <div class="form-group"><label>Naam</label>
+        <select id="f_kwal_naam4"><option value="">— Selecteer —</option><option>Sander de Roo</option><option>Michel Fernandez</option><option>Steven Dubois</option><option>Pim Groot</option><option>Maart-Jan</option><option>Richard Brink</option><option>Jeroen Kipp</option><option>Mark Boon</option><option>Thijs Schermer</option><option>Dion Koopman</option><option>Edsel Welvaart</option><option>Anders...</option></select>
+      </div>
+      <div class="form-group"><label>Protocollen uitgevoerd</label>
+        <div class="check-grid" style="margin-top:4px">
+          <label class="check-item"><input type="checkbox" id="f_kwal_p4_2001"> 2001</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p4_2002"> 2002</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p4_2003"> 2003</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p4_2018"> 2018</label>
+          <label class="check-item"><input type="checkbox" id="f_kwal_p4_2100"> 2100</label>
+        </div>
+      </div>
+      <div class="form-group"><label>Functie</label>
+        <select id="f_kwal_functie4"><option>Gecertificeerd veldwerker</option><option>Veldwerker in opleiding</option></select>
+      </div>
+      <div class="form-group"><label>Bedrijf</label><input id="f_kwal_bedrijf4" value="Ground Research"></div>
+      <div class="form-group"><label>Datum uitvoering</label><input id="f_kwal_datum4" type="date"></div>
+      <div class="form-group"><label>Handtekening</label>
+        <div style="border:1px solid #ccc;border-radius:4px;height:60px;background:#fafafa"></div>
+      </div>
+    </div>
+
+    <div class="section-title">Projectleider</div>
+    <div class="form-grid" style="grid-template-columns: repeat(4, 1fr)">
+      <div class="form-group"><label>Naam projectleider</label>
+        <select id="f_kwal_projectleider"><option value="">— Selecteer —</option><option>Pim Groot</option><option>Sander de Roo</option><option>Anders...</option></select>
+      </div>
+      <div class="form-group"><label>Datum</label><input id="f_kwal_pl_datum" type="date"></div>
+      <div class="form-group"><label>Handtekening</label>
+        <div style="border:1px solid #ccc;border-radius:4px;height:60px;background:#fafafa"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -648,7 +884,7 @@ function selectProtocol(proto, btn) {
   currentProtocol = proto;
   document.querySelectorAll('.proto-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  ['2001','2002','2018','2100'].forEach(p => {
+  ['2001','2002','2003','2018','2100'].forEach(p => {
     const sec = document.getElementById('section_' + p);
     if (sec) sec.style.display = p === proto ? '' : 'none';
   });
@@ -670,7 +906,14 @@ function delRow(btn) {
 function addRow2001() {
   const tbody = document.querySelector('#table2001 tbody');
   const tr = document.createElement('tr');
-  tr.innerHTML = '<td><input data-field="terreindeel"></td><td><input data-field="boringen"></td><td><input data-field="peilbuizen"></td><td><input data-field="codering"></td><td><input data-field="analysepakket"></td><td><input data-field="opmerkingen"></td><td><button class="del-row" onclick="delRow(this)">✕</button></td>';
+  tr.innerHTML = '<td><input data-field="terreindeel"></td><td><input data-field="boringen"></td><td><input data-field="peilbuizen"></td><td><input data-field="asbestgat"></td><td><input data-field="codering"></td><td><input data-field="analysepakket"></td><td><input data-field="opmerkingen"></td><td><button class="del-row" onclick="delRow(this)">✕</button></td>';
+  tbody.appendChild(tr);
+}
+
+function addRow2003() {
+  const tbody = document.querySelector('#table2003 tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td><input data-field="monsterpunt"></td><td><input data-field="codering"></td><td><input data-field="waterdiepte"></td><td><input data-field="slibdikte"></td><td><input data-field="analysepakket"></td><td><input data-field="opmerkingen"></td><td><button class="del-row" onclick="delRow(this)">✕</button></td>';
   tbody.appendChild(tr);
 }
 
@@ -800,7 +1043,6 @@ function parseTextFields(text, sourceLabel, extraMeta) {
   setVal('f_uitvoeringsperiode', findAfter('Uitvoeringsperiode'));
   setVal('f_laboratorium', findAfter('Laboratorium'));
   setVal('f_tijdsafspraak', findAfter('Tijdsafspraak'));
-  setVal('f_tijdsbesteding', findAfter('Tijdsbesteding'));
 
   // Spoed
   if (tl.includes('spoed') && (tl.includes('ja') || tl.match(/spoed[^.]*ja/))) {
@@ -812,11 +1054,7 @@ function parseTextFields(text, sourceLabel, extraMeta) {
   setCheck('f_nen5740', tl.includes('nen 5740') || tl.includes('nen5740'));
   setCheck('f_nen5707', tl.includes('nen 5707') || tl.includes('nen5707'));
   setCheck('f_nen5897', tl.includes('nen 5897') || tl.includes('nen5897'));
-  setCheck('f_nta5755', tl.includes('nta 5755') || tl.includes('nta5755'));
   setCheck('f_crow210', tl.includes('crow 210'));
-  setCheck('f_ap04', tl.includes('ap04') || tl.includes('protocol 1001'));
-  setCheck('f_sikb6000', tl.includes('sikb 6000'));
-  setCheck('f_sikb7000', tl.includes('sikb 7000'));
 
   // Formulieren
   setCheck('f_form2001', tl.includes('formulier protocol 2001') || tl.includes('protocol 2001'));
@@ -839,11 +1077,6 @@ function parseTextFields(text, sourceLabel, extraMeta) {
   }
   setVal('f_werkomschrijving', werkOmschr);
 
-  // Betreding
-  setCheck('f_betr_portier', tl.includes('melden bij portier'));
-  setCheck('f_betr_hekwerk', tl.includes('afgesloten hekwerk'));
-  setCheck('f_betr_vrij', tl.includes('vrije toegang'));
-
   // Werkomgeving
   setCheck('f_wo_bedrijf', tl.includes('bedrijfslocatie'));
   setCheck('f_wo_woonwijk', tl.includes('woonwijk') || tl.includes('binnenstedelijk'));
@@ -851,6 +1084,11 @@ function parseTextFields(text, sourceLabel, extraMeta) {
   setCheck('f_wo_weg', tl.includes('naast een weg'));
   setCheck('f_wo_water', tl.includes('naast een watergang'));
   setCheck('f_wo_spoor', tl.includes('naast het spoor'));
+  setCheck('f_wo_50km', tl.includes('50 km'));
+  setCheck('f_wo_80km', tl.includes('80 km'));
+  setCheck('f_wo_snelweg', tl.includes('snelweg'));
+  setCheck('f_wo_opspoor', tl.includes('op het spoor'));
+  setCheck('f_wo_anders', tl.includes('werkomgeving anders') || tl.includes('werkomgeving: anders'));
 
   // Toxische stoffen
   setCheck('f_tox_asbest', tl.includes('asbest'));
@@ -863,6 +1101,10 @@ function parseTextFields(text, sourceLabel, extraMeta) {
   setCheck('f_tox_vocl', /\bvocl\b/.test(tl));
   setCheck('f_tox_pfas', /\bpfas\b/.test(tl));
   setCheck('f_tox_geen', tl.includes('geen verontreinigingen'));
+  setCheck('f_tox_anders', tl.includes('toxische stoffen anders') || tl.includes('stoffen: anders'));
+
+  // Meetinstrumenten
+  setCheck('f_mi_pid', tl.includes('pid-meter') || tl.includes('pid meter') || tl.includes('pid'));
 
   // PBM
   setCheck('f_pbm_overall', tl.includes('overall'));
@@ -887,8 +1129,8 @@ function parseTextFields(text, sourceLabel, extraMeta) {
       const inputs = row1.querySelectorAll('input');
       let codering = findAfter('Codering');
       let analysepakket = findAfter('Analysepakket');
-      if (codering) { inputs[3].value = codering; parsed++; }
-      if (analysepakket) { inputs[4].value = analysepakket; parsed++; }
+      if (codering) { inputs[4].value = codering; parsed++; }
+      if (analysepakket) { inputs[5].value = analysepakket; parsed++; }
     }
   }
 
@@ -908,6 +1150,7 @@ function parseTextFields(text, sourceLabel, extraMeta) {
   // Inmeting
   setCheck('f_2001_meetlint', tl.includes('meetwiel') || tl.includes('meetlint'));
   setCheck('f_2001_gps', tl.includes('rtk-gps') || tl.includes('topcon'));
+  setCheck('f_2001_gps_telefoon', tl.includes('gps telefoon') || tl.includes('gps tablet'));
 
   // Protocol 2018 toelichting
   let toel2018 = '';
@@ -935,10 +1178,11 @@ function parseTextFields(text, sourceLabel, extraMeta) {
   setVal('f_kwal_datum1', today);
 
   // Auto-check kwalibo protocols
-  if (document.getElementById('f_form2001').checked) document.getElementById('f_kwal_2001').checked = true;
-  if (document.getElementById('f_form2002').checked) document.getElementById('f_kwal_2002').checked = true;
-  if (document.getElementById('f_form2003').checked) document.getElementById('f_kwal_2003').checked = true;
-  if (document.getElementById('f_form2018').checked) document.getElementById('f_kwal_2018').checked = true;
+  if (document.getElementById('f_form2001').checked) document.getElementById('f_kwal_p1_2001').checked = true;
+  if (document.getElementById('f_form2002').checked) document.getElementById('f_kwal_p1_2002').checked = true;
+  if (document.getElementById('f_form2003').checked) document.getElementById('f_kwal_p1_2003').checked = true;
+  if (document.getElementById('f_form2018').checked) document.getElementById('f_kwal_p1_2018').checked = true;
+  if (document.getElementById('f_form2100') && document.getElementById('f_form2100').checked) document.getElementById('f_kwal_p1_2100').checked = true;
 
   // Email metadata
   if (extraMeta) {
@@ -1351,6 +1595,7 @@ function getAllFormData() {
   // Table data
   data._table2001 = getTableData('table2001');
   data._table2002 = getTableData('table2002');
+  data._table2003 = getTableData('table2003');
   data._currentProtocol = currentProtocol;
   return data;
 }
@@ -1378,6 +1623,7 @@ function setAllFormData(data) {
   // Restore tables
   if (data._table2001) restoreTable('table2001', data._table2001, addRow2001);
   if (data._table2002) restoreTable('table2002', data._table2002, addRow2002);
+  if (data._table2003) restoreTable('table2003', data._table2003, addRow2003);
   if (data._currentProtocol) {
     const btn = document.querySelector(`.proto-btn[onclick*="${data._currentProtocol}"]`);
     if (btn) selectProtocol(data._currentProtocol, btn);
@@ -1670,29 +1916,13 @@ function generatePDF() {
     }
   }
 
-  function drawSeriecodes() {
-    checkPage(30);
-    drawSectionTitle('SERIECODES VERPAKKING VERBRUIKT MATERIAAL');
-    drawFieldRow([
-      { label: 'PVC/HDPE geperforeerd:', value: gv('f_serie_perf') },
-      { label: 'PVC/HDPE blind:', value: gv('f_serie_blind') }
-    ]);
-    drawFieldRow([
-      { label: 'PE-slang:', value: gv('f_serie_pe') },
-      { label: 'Siliconenslang:', value: gv('f_serie_siliconen') }
-    ]);
-    drawFieldRow([
-      { label: 'Bentoniet:', value: gv('f_serie_bentoniet') },
-      { label: 'Filtergrind:', value: gv('f_serie_filtergrind') }
-    ]);
-  }
 
   // Helper: get value
   function gv(id) { const el = document.getElementById(id); return el ? el.value : ''; }
   function gc(id) { const el = document.getElementById(id); return el ? el.checked : false; }
 
   // === PAGE 1: ALGEMEEN ===
-  drawHeader('VELDWERKFORMULIER BRL SIKB 2000 — ' + (currentProtocol === '2001' ? 'Protocol 2001' : currentProtocol === '2002' ? 'Protocol 2002' : currentProtocol === '2018' ? 'Protocol 2018' : 'Protocol 2100'));
+  drawHeader('VELDWERKFORMULIER BRL SIKB 2000 — ' + (currentProtocol === '2001' ? 'Protocol 2001' : currentProtocol === '2002' ? 'Protocol 2002' : currentProtocol === '2003' ? 'Protocol 2003' : currentProtocol === '2018' ? 'Protocol 2018' : 'Protocol 2100'));
 
   drawSectionTitle('ALGEMENE PROJECTGEGEVENS');
   drawFieldRow([
@@ -1727,11 +1957,8 @@ function generatePDF() {
     { label: 'NEN 5740', checked: gc('f_nen5740') },
     { label: 'NEN 5707', checked: gc('f_nen5707') },
     { label: 'NEN 5897', checked: gc('f_nen5897') },
-    { label: 'NTA 5755', checked: gc('f_nta5755') },
     { label: 'CROW 210', checked: gc('f_crow210') },
-    { label: 'AP04/1001', checked: gc('f_ap04') },
-    { label: 'SIKB 6000', checked: gc('f_sikb6000') },
-    { label: 'SIKB 7000', checked: gc('f_sikb7000') }
+    { label: 'Geen norm (indicatief)', checked: gc('f_indicatief') }
   ];
   drawCheckRow(onderzoekTypes);
 
@@ -1752,7 +1979,8 @@ function generatePDF() {
     { label: 'Protocol 2001', checked: gc('f_form2001') },
     { label: 'Protocol 2002', checked: gc('f_form2002') },
     { label: 'Protocol 2003', checked: gc('f_form2003') },
-    { label: 'Protocol 2018', checked: gc('f_form2018') }
+    { label: 'Protocol 2018', checked: gc('f_form2018') },
+    { label: 'Protocol 2100', checked: gc('f_form2100') }
   ]);
 
   // === PAGE 2: V&G ===
@@ -1766,7 +1994,12 @@ function generatePDF() {
     { label: 'Buitengebied', checked: gc('f_wo_buiten') },
     { label: 'Naast een weg', checked: gc('f_wo_weg') },
     { label: 'Naast watergang', checked: gc('f_wo_water') },
-    { label: 'Naast het spoor', checked: gc('f_wo_spoor') }
+    { label: 'Naast het spoor', checked: gc('f_wo_spoor') },
+    { label: 'Op 50 km weg', checked: gc('f_wo_50km') },
+    { label: 'Op 80 km weg', checked: gc('f_wo_80km') },
+    { label: 'Op snelweg', checked: gc('f_wo_snelweg') },
+    { label: 'Op het spoor', checked: gc('f_wo_opspoor') },
+    { label: 'Anders', checked: gc('f_wo_anders') }
   ]);
 
   drawSectionTitle('TE VERWACHTEN TOXISCHE STOFFEN');
@@ -1780,18 +2013,16 @@ function generatePDF() {
     { label: 'BTEXN [CMR]', checked: gc('f_tox_btexn') },
     { label: 'VOCl [CR]', checked: gc('f_tox_vocl') },
     { label: 'PFAS [R]', checked: gc('f_tox_pfas') },
-    { label: 'Geen verontreinigingen', checked: gc('f_tox_geen') }
+    { label: 'Geen verontreinigingen', checked: gc('f_tox_geen') },
+    { label: 'Anders', checked: gc('f_tox_anders') }
   ]);
 
   drawSectionTitle('MEETINSTRUMENTEN');
   drawCheckRow([
-    { label: 'PID-meter VOx', checked: gc('f_mi_pid_vox') },
-    { label: 'PID-meter benzeen', checked: gc('f_mi_pid_benz') },
-    { label: 'Explosiemeter (Ex/Ox)', checked: gc('f_mi_exox') },
+    { label: 'PID-meter', checked: gc('f_mi_pid') },
     { label: 'Bodemvochtmeter', checked: gc('f_mi_vocht') },
     { label: 'CAT-scan', checked: gc('f_mi_cat') },
-    { label: 'H2S-pieper', checked: gc('f_mi_h2s') },
-    { label: 'Kwikdampmeter', checked: gc('f_mi_kwik') }
+    { label: 'H2S-pieper', checked: gc('f_mi_h2s') }
   ]);
 
   drawSectionTitle('PERSOONLIJKE BESCHERMINGSMIDDELEN');
@@ -1806,7 +2037,9 @@ function generatePDF() {
     { label: 'Saneringsoverall', checked: gc('f_pbm_sanoverall') },
     { label: 'Halfgelaatsmasker', checked: gc('f_pbm_halfgelaat') },
     { label: 'Volgelaatsmasker', checked: gc('f_pbm_volgelaat') },
-    { label: 'Filter ABEK-P3', checked: gc('f_pbm_abek') }
+    { label: 'Filter ABEK-P3', checked: gc('f_pbm_abek') },
+    { label: 'Reddingsvest', checked: gc('f_pbm_reddingsvest') },
+    { label: 'Actiewagen', checked: gc('f_pbm_actiewagen') }
   ]);
 
   drawSectionTitle('KABELS & LEIDINGEN / OO');
@@ -1871,8 +2104,8 @@ function generatePDF() {
     drawSectionTitle('UITVOERINGSPLAN');
     const rows2001 = getTableData('table2001');
     drawTable(
-      ['Terreindeel', 'Boringen', 'Met peilbuis', 'Codering', 'Analysepakket', 'Opmerkingen'],
-      rows2001.map(r => [r.terreindeel||'', r.boringen||'', r.peilbuizen||'', r.codering||'', r.analysepakket||'', r.opmerkingen||''])
+      ['Terreindeel', 'Boringen', 'Met peilbuis', 'Asbestgat', 'Codering', 'Analysepakket', 'Opmerkingen'],
+      rows2001.map(r => [r.terreindeel||'', r.boringen||'', r.peilbuizen||'', r.asbestgat||'', r.codering||'', r.analysepakket||'', r.opmerkingen||''])
     );
 
     drawSectionTitle('DETAILS VERHARDINGEN');
@@ -1905,7 +2138,7 @@ function generatePDF() {
     drawCheckRow([
       { label: 'Meetwiel/meetlint', checked: gc('f_2001_meetlint') },
       { label: 'RTK-GPS (Topcon)', checked: gc('f_2001_gps') },
-      { label: 'Waterpassing', checked: gc('f_2001_waterpas') }
+      { label: 'GPS telefoon / tablet', checked: gc('f_2001_gps_telefoon') }
     ]);
     drawField('Benodigde nauwkeurigheid:', gv('f_2001_nauwkeurigheid'));
 
@@ -1921,11 +2154,10 @@ function generatePDF() {
   } else if (currentProtocol === '2002') {
     drawHeader('PROTOCOL 2002 — MONSTERNEMING GRONDWATER');
 
-    drawSectionTitle('BEMONSTERINGSPROTOCOL');
-    drawCheckRow([
-      { label: 'Protocol 2002 (NEN 5744:2023)', checked: gc('f_2002_prot2002') },
-      { label: 'NTA 8017:2016', checked: gc('f_2002_nta8017') },
-      { label: 'NEN 5744:2023 excl. troebelheid', checked: gc('f_2002_nen5744_excl') }
+    drawSectionTitle('AFWIJKING PROTOCOL 2002');
+    drawFieldRow([
+      { label: 'Afwijking:', value: gv('f_2002_afwijking') },
+      { label: 'Reden:', value: gv('f_2002_afwijking_reden') }
     ]);
 
     drawSectionTitle('INSTELLINGEN');
@@ -1958,6 +2190,18 @@ function generatePDF() {
       y += 2;
     }
 
+  } else if (currentProtocol === '2003') {
+    drawHeader('PROTOCOL 2003 — VELDWERK BIJ MILIEUHYGIËNISCH WATERBODEMONDERZOEK');
+    drawSectionTitle('UITVOERINGSPLAN');
+    drawFieldRow([{ label:'Aantal monsterpunten:', value: gv('f_2003_monsterpunten') },{ label:'Waterdiepte (m):', value: gv('f_2003_waterdiepte') }]);
+    drawFieldRow([{ label:'Bemonsteringsmethode:', value: gv('f_2003_methode') },{ label:'Bemonsteringsdiepte (m):', value: gv('f_2003_bemonst_diepte') }]);
+    const rows2003 = getTableData('table2003');
+    drawSectionTitle('DETAILS MONSTERPUNTEN');
+    drawTable(['Monsterpunt','Codering','Waterdiepte','Slibdikte','Analysepakket','Opmerkingen'], rows2003.map(r=>[r.monsterpunt||'',r.codering||'',r.waterdiepte||'',r.slibdikte||'',r.analysepakket||'',r.opmerkingen||'']));
+    drawSectionTitle('AFWIJKING PROTOCOL 2003');
+    drawFieldRow([{ label:'Afwijking:', value: gv('f_2003_afwijking') },{ label:'Reden:', value: gv('f_2003_afwijking_reden') }]);
+    const toel2003=gv('f_2003_toelichting'); if(toel2003){ drawSectionTitle('TOELICHTING WERKZAAMHEDEN'); doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.splitTextToSize(toel2003, CW).forEach(l=>{checkPage(5); doc.text(l,M,y+3); y+=4;}); y+=2;}
+
   } else if (currentProtocol === '2018') {
     drawHeader('PROTOCOL 2018 — MAAIVELDINSPECTIE EN MONSTERNEMING ASBEST IN BODEM');
 
@@ -1969,6 +2213,12 @@ function generatePDF() {
       tl.forEach(l => { checkPage(5); doc.text(l, M, y + 3); y += 4; });
       y += 2;
     }
+
+    drawSectionTitle('MAAIVELD INSPECTIE VERSLAG');
+    drawFieldRow([{ label:'Datum inspectie:', value: gv('f_2018_insp_datum') },{ label:'Inspecteur:', value: gv('f_2018_inspecteur') }]);
+    drawFieldRow([{ label:'Weersomstandigheden:', value: gv('f_2018_weer') },{ label:'Zichtbaarheid:', value: gv('f_2018_zicht') }]);
+    drawCheckRow([{label:'Gehele locatie geïnspecteerd',checked:gc('f_2018_miv_geheel')},{label:'Bedekking <25%',checked:gc('f_2018_miv_bedekking25')},{label:'Bedekking >25%',checked:gc('f_2018_miv_bedekking25p')},{label:'Asbestverdacht materiaal',checked:gc('f_2018_miv_asbest_mv')},{label:'Puinhoudend',checked:gc('f_2018_miv_puinhoudend')},{label:'Materiaalopslag aanwezig',checked:gc('f_2018_miv_opslag')}]);
+    if (gv('f_2018_miv_bevindingen')) drawField('Bevindingen:', gv('f_2018_miv_bevindingen'));
 
     drawSectionTitle('UITVOERINGSPLAN');
     drawFieldRow([
@@ -2103,10 +2353,9 @@ function generatePDF() {
     }
   }
 
-  // === SERIECODES & KWALIBO (on every protocol) ===
+  // === KWALIBO (on every protocol) ===
   checkPage(40);
   if (y > H - 80) newPage();
-  drawSeriecodes();
   drawSignatureBlock();
   
   // Kwalibo on new page
