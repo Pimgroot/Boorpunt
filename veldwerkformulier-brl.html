@@ -230,7 +230,8 @@ body.klant-mode .client-opdracht-card{display:block!important}
   <div class="card-body">
     <div class="form-grid">
       <div class="form-group"><label>Projectnaam</label><input id="f_projectnaam" placeholder="Bijv. PB-25-10406"></div>
-      <div class="form-group"><label>Projectnummer</label><input id="f_projectnummer" placeholder="Bijv. 30250705"></div>
+      <div class="form-group"><label>Projectnummer klant</label><input id="f_projectnummer_klant" placeholder="Projectnummer opdrachtgever"></div>
+      <div class="form-group"><label>Kenmerk Ground Research</label><input id="f_projectnummer" placeholder="GRH-20260414-XXX"></div>
       <div class="form-group"><label>Projectleider</label><input id="f_projectleider" placeholder="Naam projectleider"></div>
       <div class="form-group"><label>Contactpersoon kantoor (BRL)</label><input id="f_contactpersoon_brl" placeholder="Naam + telefoonnummer"></div>
       <div class="form-group"><label>Klantnaam</label><input id="f_klantnaam" placeholder="Opdrachtgever"></div>
@@ -1140,7 +1141,7 @@ function generateClientShareCode() {
     `<div style="text-align:center;padding:12px">
        <div style="font-size:48px;margin-bottom:8px">📨</div>
        <p style="font-size:14px;margin-bottom:16px">Uw veldwerkopdracht is klaar!<br>Download het bestand en mail het naar Ground Research.</p>
-       <p style="font-size:12px;color:#666;margin-bottom:8px">E-mail: <b>info@groundresearch.nl</b></p>
+       <p style="font-size:12px;color:#666;margin-bottom:8px">E-mail: <b>planning@groundresearch.nl</b></p>
      </div>`,
     `<button class="btn btn-success" style="font-size:14px;padding:10px 20px" onclick="downloadClientFile()">📥 Download ${fileName}</button>
      <button class="btn btn-primary" onclick="generateClientSummaryPDF(getFilledFormData())">📄 Download als PDF</button>`
