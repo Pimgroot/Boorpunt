@@ -130,6 +130,7 @@ body.klant-mode #importCard,
 body.klant-mode #kwaliboCard,
 body.klant-mode #normalActionCard{display:none}
 body.klant-mode .client-action-wrap{display:block}
+body.klant-mode .client-opdracht-card{display:block!important}
 
 .share-code-box{width:100%;min-height:120px;padding:10px;border:1px solid #ccc;border-radius:6px;font-family:monospace;font-size:12px}
 .share-url-box{width:100%;padding:10px;border:1px solid #ccc;border-radius:6px;font-size:12px}
@@ -390,6 +391,81 @@ body.klant-mode .client-action-wrap{display:block}
     <div class="section-title">V&G Toelichting</div>
     <div class="form-group form-full">
       <textarea id="f_vg_toelichting" rows="3" placeholder="KLIC, OO-verdenking, verkeersmaatregelen, PBM's..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Klant werkopdracht specificatie (alleen zichtbaar in klant-modus) -->
+<div class="card client-opdracht-card" id="clientOpdrachtCard" style="display:none">
+  <div class="card-head" onclick="toggleCard(this)">
+    📋 Werkopdracht specificatie
+    <span class="toggle">▼</span>
+  </div>
+  <div class="card-body">
+    <p style="font-size:12px;color:#555;margin-bottom:12px">Geef hier aan wat er uitgevoerd moet worden. Ground Research gebruikt deze gegevens voor de werkvoorbereiding.</p>
+    
+    <div class="section-title">Boringen (Protocol 2001)</div>
+    <table class="form-table" id="tableKlant2001">
+      <thead>
+        <tr><th>Terreindeel / locatie</th><th>Aantal boringen</th><th>Diepte (m-mv)</th><th>Peilbuizen (aantal)</th><th>Filterstelling</th><th>Opmerkingen</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input data-field="terreindeel" placeholder="Bijv. Tuin achter"></td>
+          <td><input data-field="aantal" type="number" placeholder="5"></td>
+          <td><input data-field="diepte" placeholder="2,0"></td>
+          <td><input data-field="peilbuizen" type="number" placeholder="2"></td>
+          <td><input data-field="filterstelling" placeholder="1,5-2,0"></td>
+          <td><input data-field="opmerkingen" placeholder=""></td>
+          <td><button class="del-row" onclick="delRow(this)">✕</button></td>
+        </tr>
+        <tr>
+          <td><input data-field="terreindeel"></td>
+          <td><input data-field="aantal" type="number"></td>
+          <td><input data-field="diepte"></td>
+          <td><input data-field="peilbuizen" type="number"></td>
+          <td><input data-field="filterstelling"></td>
+          <td><input data-field="opmerkingen"></td>
+          <td><button class="del-row" onclick="delRow(this)">✕</button></td>
+        </tr>
+        <tr>
+          <td><input data-field="terreindeel"></td>
+          <td><input data-field="aantal" type="number"></td>
+          <td><input data-field="diepte"></td>
+          <td><input data-field="peilbuizen" type="number"></td>
+          <td><input data-field="filterstelling"></td>
+          <td><input data-field="opmerkingen"></td>
+          <td><button class="del-row" onclick="delRow(this)">✕</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="add-row" onclick="addRowKlant2001()">+ Rij toevoegen</button>
+
+    <div class="section-title" style="margin-top:16px">Grondwaterbemonstering (Protocol 2002)</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Aantal peilbuizen te bemonsteren</label><input id="f_klant_2002_aantal" type="number" placeholder="Bijv. 3"></div>
+      <div class="form-group"><label>Analysepakket</label><input id="f_klant_2002_analyse" placeholder="Bijv. standaard NEN"></div>
+      <div class="form-group"><label>Spoed laboratorium</label>
+        <select id="f_klant_2002_spoed"><option value="nee">Nee</option><option value="ja">Ja</option></select>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:16px">Asbest (Protocol 2018)</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Oppervlakte locatie (m²)</label><input id="f_klant_2018_opp" type="number" placeholder="Bijv. 500"></div>
+      <div class="form-group"><label>Asbestverdacht of onverdacht</label>
+        <select id="f_klant_2018_verdacht"><option value="">— Selecteer —</option><option>Verdacht</option><option>Onverdacht</option></select>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:16px">Planning & overig</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Gewenste uitvoeringsperiode</label><input id="f_klant_periode" placeholder="Bijv. week 20-21"></div>
+      <div class="form-group"><label>Contact op locatie (naam + tel)</label><input id="f_klant_contact" placeholder="Naam + telefoonnummer"></div>
+    </div>
+    <div class="form-group form-full" style="margin-top:8px">
+      <label>Aanvullende opmerkingen / bijzonderheden</label>
+      <textarea id="f_klant_opmerkingen" rows="3" placeholder="Bijv. toegang via achterzijde, hond aanwezig, asbest vermoed in tuin..."></textarea>
     </div>
   </div>
 </div>
@@ -992,6 +1068,23 @@ function getFilledFormData() {
     if (typeof v === 'boolean' && v) out[k] = true;
     if (typeof v === 'string' && v.trim()) out[k] = v;
   });
+  // Klant-specifieke velden
+  const klantFields = ['f_klant_2002_aantal','f_klant_2002_analyse','f_klant_2002_spoed','f_klant_2018_opp','f_klant_2018_verdacht','f_klant_periode','f_klant_contact','f_klant_opmerkingen'];
+  klantFields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value && el.value.trim()) out[id] = el.value;
+  });
+  // Klant boringen tabel
+  const klantRows = [];
+  document.querySelectorAll('#tableKlant2001 tbody tr').forEach(tr => {
+    const row = {}; let hasData = false;
+    tr.querySelectorAll('input').forEach(inp => {
+      const f = inp.getAttribute('data-field');
+      if (f && inp.value.trim()) { row[f] = inp.value; hasData = true; }
+    });
+    if (hasData) klantRows.push(row);
+  });
+  if (klantRows.length) out._klantBoringen = klantRows;
   out._sharedAt = new Date().toISOString();
   out._sharedBy = 'klant';
   return out;
@@ -1095,11 +1188,41 @@ function importClientData() {
     if (!code) return showStatus('Geen code ingevuld', 'error');
     const data = decodeShareData(code);
     setAllFormData(data);
+    // Import klant-boringen naar protocol 2001 tabel
+    if (data._klantBoringen && data._klantBoringen.length) {
+      const tbody = document.querySelector('#table2001 tbody');
+      data._klantBoringen.forEach((row, i) => {
+        if (i >= tbody.children.length) addRow2001();
+        const tr = tbody.children[i];
+        if (tr) {
+          const td = tr.querySelector('input[data-field="terreindeel"]');
+          if (td && row.terreindeel) td.value = row.terreindeel;
+          const bor = tr.querySelector('input[data-field="boringen"]');
+          if (bor) bor.value = (row.aantal ? row.aantal+' st' : '') + (row.diepte ? ' tot '+row.diepte+' m-mv' : '');
+          const pb = tr.querySelector('input[data-field="peilbuizen"]');
+          if (pb && row.peilbuizen) pb.value = row.peilbuizen;
+          const opm = tr.querySelector('input[data-field="opmerkingen"]');
+          if (opm && row.opmerkingen) opm.value = row.opmerkingen;
+        }
+      });
+    }
+    // Import klant-specifieke velden
+    if (data.f_klant_contact) setVal('f_contact_locatie', data.f_klant_contact);
+    if (data.f_klant_periode) setVal('f_uitvoeringsperiode', data.f_klant_periode);
+    if (data.f_klant_2002_spoed === 'ja') setVal('f_spoed_lab', 'ja');
+    if (data.f_klant_opmerkingen) {
+      const wo = document.getElementById('f_werkomschrijving');
+      if (wo) wo.value = (wo.value ? wo.value+'\n' : '') + data.f_klant_opmerkingen;
+    }
     const count = Object.keys(data).filter(k => !k.startsWith('_')).length;
     showStatus(`✅ Klantdata geïmporteerd (${count} velden)`, 'success');
     document.querySelector('.modal-overlay')?.remove();
   } catch (e) {
     showStatus('Ongeldige klantcode: ' + e.message, 'error');
+  }
+  function setVal(id, val) {
+    const el = document.getElementById(id);
+    if (el && val) el.value = val;
   }
 }
 
@@ -1127,6 +1250,13 @@ function addRow2001() {
   const tbody = document.querySelector('#table2001 tbody');
   const tr = document.createElement('tr');
   tr.innerHTML = '<td><input data-field="terreindeel"></td><td><input data-field="boringen"></td><td><input data-field="peilbuizen"></td><td><input data-field="asbestgat"></td><td><input data-field="codering"></td><td><input data-field="analysepakket"></td><td><input data-field="opmerkingen"></td><td><button class="del-row" onclick="delRow(this)">✕</button></td>';
+  tbody.appendChild(tr);
+}
+
+function addRowKlant2001() {
+  const tbody = document.querySelector('#tableKlant2001 tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td><input data-field="terreindeel"></td><td><input data-field="aantal" type="number"></td><td><input data-field="diepte"></td><td><input data-field="peilbuizen" type="number"></td><td><input data-field="filterstelling"></td><td><input data-field="opmerkingen"></td><td><button class="del-row" onclick="delRow(this)">\u2715</button></td>';
   tbody.appendChild(tr);
 }
 
