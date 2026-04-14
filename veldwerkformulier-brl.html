@@ -191,7 +191,7 @@ body.klant-mode .client-opdracht-card{display:block!important}
       <div class="icon">📄</div>
       <div class="title">Sleep DOCX, Excel, PDF of Email hier</div>
       <div class="sub">Of klik om een bestand te selecteren — DOCX, XLSX, XLS, CSV, PDF, EML</div>
-      <input type="file" id="fileInput" accept=".docx,.xlsx,.xls,.csv,.pdf,.eml">
+      <input type="file" id="fileInput" accept=".docx,.xlsx,.xls,.csv,.pdf,.eml,.grh,.json">
     </div>
     <div id="parseResult" class="parse-result" style="display:none"></div>
   </div>
@@ -1124,16 +1124,35 @@ function generateClientSummaryPDF(data) {
 
 function generateClientShareCode() {
   const payload = getFilledFormData();
-  const code = encodeShareData(payload);
-  const overlay = createModal(
-    '✅ Code gegenereerd',
-    `<p style="margin-bottom:8px">Stuur deze code naar Ground Research of gebruik de download knop.</p>
-     <textarea id="clientShareCode" class="share-code-box">${code}</textarea>`,
-    `<button class="btn btn-success" onclick="copyToClipboard(document.getElementById('clientShareCode').value, 'Code gekopieerd')">📋 Kopieer code</button>
-     <button class="btn btn-primary" onclick="generateClientSummaryPDF(decodeShareData(document.getElementById('clientShareCode').value))">📄 Download als PDF</button>`
+  const projectNaam = payload.f_projectnaam || 'project';
+  const projectNr = payload.f_projectnummer || '';
+  const fileName = 'Veldwerkopdracht_' + (projectNr || projectNaam).replace(/[^a-zA-Z0-9_\-]/g, '_') + '.grh';
+  
+  createModal(
+    '✅ Veldwerkopdracht gereed',
+    `<div style="text-align:center;padding:12px">
+       <div style="font-size:48px;margin-bottom:8px">📨</div>
+       <p style="font-size:14px;margin-bottom:16px">Uw veldwerkopdracht is klaar!<br>Download het bestand en mail het naar Ground Research.</p>
+       <p style="font-size:12px;color:#666;margin-bottom:8px">E-mail: <b>info@groundresearch.nl</b></p>
+     </div>`,
+    `<button class="btn btn-success" style="font-size:14px;padding:10px 20px" onclick="downloadClientFile()">📥 Download ${fileName}</button>
+     <button class="btn btn-primary" onclick="generateClientSummaryPDF(getFilledFormData())">📄 Download als PDF</button>`
   );
-  const ta = overlay.querySelector('#clientShareCode');
-  ta.addEventListener('click', () => ta.select());
+}
+
+function downloadClientFile() {
+  const payload = getFilledFormData();
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const projectNaam = payload.f_projectnaam || 'project';
+  const projectNr = payload.f_projectnummer || '';
+  const fileName = 'Veldwerkopdracht_' + (projectNr || projectNaam).replace(/[^a-zA-Z0-9_\-]/g, '_') + '.grh';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showStatus('✅ Bestand gedownload: ' + fileName, 'success');
 }
 
 function buildKlantShareUrl(project, nr, klant) {
@@ -1177,12 +1196,65 @@ function openShareClientModal() {
 function openImportClientDataModal() {
   createModal(
     '📥 Importeer klantdata',
-    `<div class="form-group form-full">
-      <label>Plak hier de code van de klant</label>
-      <textarea id="import_client_code" rows="8" class="share-code-box" placeholder="Plak hier de code..."></textarea>
-    </div>`,
+    `<div style="text-align:center;padding:12px">
+       <div class="dropzone" id="grhDropZone" style="margin-bottom:16px;padding:24px" onclick="document.getElementById('grhFileInput').click()">
+         <div class="icon">📨</div>
+         <div class="title">Sleep .grh bestand hier</div>
+         <div class="sub">Of klik om een bestand te selecteren</div>
+         <input type="file" id="grhFileInput" accept=".grh,.json" style="display:none">
+       </div>
+       <div style="color:#999;font-size:12px;margin-bottom:12px">— of plak een code —</div>
+       <textarea id="import_client_code" rows="4" class="share-code-box" placeholder="Plak hier een code (optioneel)..."></textarea>
+     </div>`,
     `<button class="btn btn-primary" onclick="importClientData()">Importeren</button>`
   );
+  // Setup .grh file drop/click
+  setTimeout(() => {
+    const dz = document.getElementById('grhDropZone');
+    const fi = document.getElementById('grhFileInput');
+    if (dz) {
+      dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+      dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+      dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) importGrhFile(e.dataTransfer.files[0]); });
+    }
+    if (fi) fi.addEventListener('change', e => { if (e.target.files.length) importGrhFile(e.target.files[0]); });
+  }, 100);
+}
+
+async function importGrhFile(file) {
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    setAllFormData(data);
+    // Import klant-boringen naar 2001 tabel
+    if (data._klantBoringen && data._klantBoringen.length) {
+      const tbody = document.querySelector('#table2001 tbody');
+      data._klantBoringen.forEach((row, i) => {
+        while (i >= tbody.children.length) addRow2001();
+        const tr = tbody.children[i];
+        if (tr) {
+          const setField = (field, val) => { const inp = tr.querySelector('input[data-field="'+field+'"]'); if (inp && val) inp.value = val; };
+          setField('terreindeel', row.terreindeel);
+          let borTxt = '';
+          if (row.aantal) borTxt += row.aantal + ' st';
+          if (row.diepte) borTxt += (borTxt ? ' tot ' : 'tot ') + row.diepte + ' m-mv';
+          setField('boringen', borTxt);
+          let pbTxt = '';
+          if (row.peilbuizen) pbTxt += row.peilbuizen + ' st';
+          if (row.filterstelling) pbTxt += (pbTxt ? ', filter ' : 'filter ') + row.filterstelling + ' m-mv';
+          setField('peilbuizen', pbTxt || row.peilbuizen || '');
+          setField('opmerkingen', row.opmerkingen);
+        }
+      });
+    }
+    if (data.f_klant_contact) { const el = document.getElementById('f_contact_locatie'); if (el) el.value = data.f_klant_contact; }
+    if (data.f_klant_opmerkingen) { const wo = document.getElementById('f_werkomschrijving'); if (wo) wo.value = (wo.value ? wo.value+'\n' : '') + data.f_klant_opmerkingen; }
+    const count = Object.keys(data).filter(k => !k.startsWith('_')).length;
+    showStatus('✅ Klantbestand geïmporteerd: ' + file.name + ' (' + count + ' velden)', 'success');
+    document.querySelector('.modal-overlay')?.remove();
+  } catch(e) {
+    showStatus('Fout bij importeren: ' + e.message, 'error');
+  }
 }
 
 function importClientData() {
@@ -1303,6 +1375,7 @@ function setupDropzone() {
 // === FILE TYPE DETECTION ===
 function detectFileType(file) {
   const name = file.name.toLowerCase();
+  if (name.endsWith('.grh') || name.endsWith('.json')) return 'grh';
   if (name.endsWith('.docx')) return 'docx';
   if (name.endsWith('.xlsx') || name.endsWith('.xls')) return 'excel';
   if (name.endsWith('.csv')) return 'csv';
@@ -1348,6 +1421,9 @@ async function processFile(file) {
         break;
       case 'eml':
         await processEmlFile(file);
+        break;
+      case 'grh':
+        await importGrhFile(file);
         break;
     }
   } catch (err) {
