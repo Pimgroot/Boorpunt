@@ -2255,18 +2255,28 @@ function showProjectPicker() {
     });
     listHtml += '</div>';
   }
+  const suggestedCode = generateProjectCode();
   createModal(
     '📁 Project kiezen',
     `<p style="margin-bottom:12px">Start een nieuw project of hervat een bestaand project.</p>
-     <button class="btn btn-success" onclick="startNewProject()" style="width:100%;padding:12px;font-size:15px">🆕 Nieuw project starten</button>
+     <div style="display:flex;gap:8px;align-items:end;margin-bottom:8px">
+       <div class="form-group" style="flex:1"><label style="font-size:11px;font-weight:600;color:#5a9138">PROJECTNUMMER</label>
+         <input id="newProjectCode" value="${suggestedCode}" style="padding:10px;border:2px solid #5a9138;border-radius:6px;font-size:15px;font-weight:700;font-family:monospace">
+       </div>
+       <button class="btn btn-success" onclick="startNewProject()" style="padding:10px 20px;font-size:14px;white-space:nowrap">🆕 Start</button>
+     </div>
+     <p style="font-size:11px;color:#888;margin-bottom:4px">Pas het nummer aan als dit al in gebruik is op een ander apparaat.</p>
      ${listHtml}`,
     ''
   );
 }
 
 function startNewProject() {
+  const codeInput = document.getElementById('newProjectCode');
+  const code = codeInput ? codeInput.value.trim() : generateProjectCode();
+  if (!code) { showStatus('Vul een projectnummer in', 'error'); return; }
   clearAllFields();
-  currentProjectCode = generateProjectCode();
+  currentProjectCode = code;
   document.getElementById('f_projectnummer').value = currentProjectCode;
   document.getElementById('f_kwal_datum1').value = new Date().toISOString().split('T')[0];
   document.querySelector('.modal-overlay')?.remove();
