@@ -138,7 +138,8 @@ body.klant-mode .protocol-section,
 body.klant-mode #protocolChoiceCard,
 body.klant-mode #importCard,
 body.klant-mode #kwaliboCard,
-body.klant-mode #normalActionCard{display:none}
+body.klant-mode #normalActionCard,
+body.klant-mode #topActionCard{display:none}
 body.klant-mode .client-action-wrap{display:block}
 body.klant-mode .client-opdracht-card{display:block!important}
 
@@ -182,6 +183,18 @@ body.klant-mode .client-opdracht-card{display:block!important}
 </div>
 
 <div class="container">
+
+<!-- Actieknoppen boven -->
+<div class="card" id="topActionCard">
+  <div class="card-body" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:12px">
+    <button class="btn btn-success" onclick="startNewProject()">🆕 Nieuw</button>
+    <button class="btn btn-orange" onclick="loadFromStorage()">📁 Projecten</button>
+    <button class="btn btn-primary" onclick="generatePDF()">📄 PDF</button>
+    <button class="btn btn-success" onclick="saveToStorage();showStatus('✅ Project opgeslagen: '+currentProjectCode,'success')">💾 Opslaan</button>
+    <button class="btn btn-primary" onclick="openShareClientModal()">🔗 Deel</button>
+    <button class="btn btn-orange" onclick="openImportClientDataModal()">📥 Import</button>
+  </div>
+</div>
 
 <!-- Status -->
 <div id="statusBar" class="status-bar"></div>
