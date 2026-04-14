@@ -1,0 +1,13 @@
+{
+  "name": "Veldwerkformulier - Ground Research BV",
+  "short_name": "Veldwerk GR",
+  "description": "BRL SIKB 2000 Veldwerkformulier voor Ground Research BV",
+  "start_url": "./veldwerkformulier-brl.html",
+  "display": "standalone",
+  "background_color": "#5a9138",
+  "theme_color": "#5a9138",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
