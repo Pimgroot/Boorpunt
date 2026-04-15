@@ -638,8 +638,11 @@ body.klant-mode .client-opdracht-card{display:block!important}
       <div class="form-group"><label>Troebelheid >10 NTU</label>
         <select id="f_2002_troebel"><option value="toch">Toch bemonsteren</option><option value="extra">Extra afpompen, week later</option></select>
       </div>
-      <div class="form-group"><label>Filter niet juiste hoogte</label>
-        <select id="f_2002_filter"><option value="herplaatsen">Herplaatsen peilbuis</option><option value="toch">Toch bemonsteren (afwijking)</option></select>
+      <div class="form-group"><label>Afwijking filterstelling</label>
+        <select id="f_2002_filter" onchange="document.getElementById('f_2002_filter_reden_wrap').style.display=this.value==='nvt'?'none':'block'"><option value="nvt">N.v.t.</option><option value="herplaatsen">Herplaatsen peilbuis</option><option value="toch">Toch bemonsteren (afwijking)</option></select>
+      </div>
+      <div class="form-group" id="f_2002_filter_reden_wrap" style="display:none"><label>Reden afwijking filterstelling</label>
+        <textarea id="f_2002_filter_reden" placeholder="Reden van afwijking..."></textarea>
       </div>
       <div class="form-group"><label>Analyses inzetten door</label>
         <select id="f_2002_analyses"><option value="projectleider">Projectleider/specialist</option><option value="milieutechnicus">Milieutechnicus</option></select>
@@ -2842,7 +2845,7 @@ function generatePDF() {
       { label: 'Troebelheid >10 NTU:', value: gv('f_2002_troebel') }
     ]);
     drawFieldRow([
-      { label: 'Filter niet juist:', value: gv('f_2002_filter') },
+      { label: 'Afwijking filterstelling:', value: gv('f_2002_filter') === 'nvt' ? 'N.v.t.' : gv('f_2002_filter') + (gv('f_2002_filter_reden') ? ' — ' + gv('f_2002_filter_reden') : '') },
       { label: 'Analyses door:', value: gv('f_2002_analyses') }
     ]);
     drawFieldRow([
