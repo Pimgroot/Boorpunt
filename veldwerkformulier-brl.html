@@ -224,12 +224,13 @@ body.klant-mode .client-opdracht-card{display:block!important}
     <span class="toggle">▼</span>
   </div>
   <div class="card-body">
+    <p style="font-size:12px;color:#666;margin-bottom:8px">Klik op één of meer protocollen — bij gecombineerde klussen kun je er meerdere selecteren.</p>
     <div class="proto-select" id="protoSelect">
-      <button class="proto-btn active" onclick="selectProtocol('2001',this)">Protocol 2001<br><small>Handboringen & peilbuizen</small></button>
-      <button class="proto-btn" onclick="selectProtocol('2002',this)">Protocol 2002<br><small>Monsterneming grondwater</small></button>
-      <button class="proto-btn" onclick="selectProtocol('2003',this)">Protocol 2003<br><small>Veldwerk waterbodem</small></button>
-      <button class="proto-btn" onclick="selectProtocol('2018',this)">Protocol 2018<br><small>Maaiveldinspectie asbest</small></button>
-      <button class="proto-btn" onclick="selectProtocol('2100',this)">Protocol 2100<br><small>Mechanisch boren</small></button>
+      <button class="proto-btn active" onclick="toggleProtocol('2001',this)">Protocol 2001<br><small>Handboringen & peilbuizen</small></button>
+      <button class="proto-btn" onclick="toggleProtocol('2002',this)">Protocol 2002<br><small>Monsterneming grondwater</small></button>
+      <button class="proto-btn" onclick="toggleProtocol('2003',this)">Protocol 2003<br><small>Veldwerk waterbodem</small></button>
+      <button class="proto-btn" onclick="toggleProtocol('2018',this)">Protocol 2018<br><small>Maaiveldinspectie asbest</small></button>
+      <button class="proto-btn" onclick="toggleProtocol('2100',this)">Protocol 2100<br><small>Mechanisch boren</small></button>
     </div>
   </div>
 </div>
@@ -1035,14 +1036,28 @@ function toggleCard(el) {
   toggle.classList.toggle('collapsed');
 }
 
-function selectProtocol(proto, btn) {
-  currentProtocol = proto;
-  document.querySelectorAll('.proto-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+let activeProtocols = new Set(['2001']);
+
+function toggleProtocol(proto, btn) {
+  if (activeProtocols.has(proto)) {
+    // Don't allow deselecting the last one
+    if (activeProtocols.size <= 1) return;
+    activeProtocols.delete(proto);
+    btn.classList.remove('active');
+  } else {
+    activeProtocols.add(proto);
+    btn.classList.add('active');
+  }
+  currentProtocol = [...activeProtocols][activeProtocols.size - 1]; // last selected for compat
   ['2001','2002','2003','2018','2100'].forEach(p => {
     const sec = document.getElementById('section_' + p);
-    if (sec) sec.style.display = p === proto ? '' : 'none';
+    if (sec) sec.style.display = activeProtocols.has(p) ? '' : 'none';
   });
+}
+
+// Backwards compat: selectProtocol still works for imports
+function selectProtocol(proto, btn) {
+  toggleProtocol(proto, btn);
 }
 
 function showStatus(msg, type) {
@@ -2601,7 +2616,9 @@ function generatePDF() {
   function gc(id) { const el = document.getElementById(id); return el ? el.checked : false; }
 
   // === PAGE 1: ALGEMEEN ===
-  drawHeader('VELDWERKFORMULIER BRL SIKB 2000 — ' + (currentProtocol === '2001' ? 'Protocol 2001' : currentProtocol === '2002' ? 'Protocol 2002' : currentProtocol === '2003' ? 'Protocol 2003' : currentProtocol === '2018' ? 'Protocol 2018' : 'Protocol 2100'));
+  const protoNames = {'2001':'Protocol 2001','2002':'Protocol 2002','2003':'Protocol 2003','2018':'Protocol 2018','2100':'Protocol 2100'};
+  const protoList = [...activeProtocols].sort();
+  drawHeader('VELDWERKFORMULIER BRL SIKB 2000 — ' + protoList.map(p => protoNames[p]).join(' + '));
 
   drawSectionTitle('ALGEMENE PROJECTGEGEVENS');
   drawFieldRow([
@@ -2774,10 +2791,11 @@ function generatePDF() {
   drawTable(['Controle', 'JA', 'NEE', 'NVT', 'TOELICHTING'],
     afrondItems.map(item => [item, '☐', '☐', '☐', '']));
 
-  // === PAGE 4: PROTOCOL SPECIFIC ===
+  // === PROTOCOL SPECIFIC PAGES ===
+  for (const _proto of protoList) {
   newPage();
 
-  if (currentProtocol === '2001') {
+  if (_proto === '2001') {
     drawHeader('PROTOCOL 2001 — HANDBORINGEN EN PEILBUIZEN, GRONDMONSTERNAME');
     
     drawSectionTitle('UITVOERINGSPLAN');
@@ -2830,7 +2848,7 @@ function generatePDF() {
       y += 2;
     }
 
-  } else if (currentProtocol === '2002') {
+  } else if (_proto === '2002') {
     drawHeader('PROTOCOL 2002 — MONSTERNEMING GRONDWATER');
 
     drawSectionTitle('AFWIJKING PROTOCOL 2002');
@@ -2869,7 +2887,7 @@ function generatePDF() {
       y += 2;
     }
 
-  } else if (currentProtocol === '2003') {
+  } else if (_proto === '2003') {
     drawHeader('PROTOCOL 2003 — VELDWERK BIJ MILIEUHYGIËNISCH WATERBODEMONDERZOEK');
     drawSectionTitle('UITVOERINGSPLAN');
     drawFieldRow([{ label:'Aantal monsterpunten:', value: gv('f_2003_monsterpunten') },{ label:'Waterdiepte (m):', value: gv('f_2003_waterdiepte') }]);
@@ -2881,7 +2899,7 @@ function generatePDF() {
     drawFieldRow([{ label:'Afwijking:', value: gv('f_2003_afwijking') },{ label:'Reden:', value: gv('f_2003_afwijking_reden') }]);
     const toel2003=gv('f_2003_toelichting'); if(toel2003){ drawSectionTitle('TOELICHTING WERKZAAMHEDEN'); doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.splitTextToSize(toel2003, CW).forEach(l=>{checkPage(5); doc.text(l,M,y+3); y+=4;}); y+=2;}
 
-  } else if (currentProtocol === '2018') {
+  } else if (_proto === '2018') {
     drawHeader('PROTOCOL 2018 — MAAIVELDINSPECTIE EN MONSTERNEMING ASBEST IN BODEM');
 
     const toel2018 = gv('f_2018_toelichting');
@@ -3005,7 +3023,7 @@ function generatePDF() {
       [['', '', '', '☐'], ['', '', '', '☐']]
     );
 
-  } else if (currentProtocol === '2100') {
+  } else if (_proto === '2100') {
     drawHeader('PROTOCOL 2100 — MECHANISCH BOREN');
 
     drawSectionTitle('UITVOERINGSPLAN');
@@ -3031,6 +3049,7 @@ function generatePDF() {
       y += 2;
     }
   }
+  } // end for-loop over protocols
 
   // === KWALIBO (on every protocol) ===
   checkPage(40);
@@ -3062,7 +3081,7 @@ function generatePDF() {
   }
 
   // Save
-  const filename = `VWF_${currentProtocol}_${gv('f_projectnaam') || 'project'}_${new Date().toISOString().split('T')[0]}.pdf`;
+  const filename = `VWF_${protoList.join('-')}_${gv('f_projectnaam') || 'project'}_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(filename.replace(/[^a-zA-Z0-9_\-\.]/g, '_'));
   showStatus(`✅ PDF gegenereerd: ${filename}`, 'success');
 }
