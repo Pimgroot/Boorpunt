@@ -586,7 +586,7 @@ body.klant-mode .client-opdracht-card{display:block!important}
     </div>
     <div class="form-grid" style="margin-top:10px">
       <div class="form-group"><label>Verwachte grondwaterstand (m-mv)</label><input id="f_2001_gwstand" placeholder="Bijv. 1.5"></div>
-      <div class="form-group"><label>Maaiveld-kopbuis meten</label>
+      <div class="form-group"><label>Maaiveld-BKP meten</label>
         <select id="f_2001_kopbuis"><option value="ja">Ja</option><option value="nee">Nee</option></select>
       </div>
     </div>
@@ -645,9 +645,9 @@ body.klant-mode .client-opdracht-card{display:block!important}
         <select id="f_2002_analyses"><option value="projectleider">Projectleider/specialist</option><option value="milieutechnicus">Milieutechnicus</option></select>
       </div>
       <div class="form-group"><label>Referentie grondwaterstand</label>
-        <select id="f_2002_referentie"><option value="maaiveld">Maaiveld (standaard)</option><option value="kopbuis">Kop buis</option></select>
+        <select id="f_2002_referentie"><option value="maaiveld">Maaiveld (standaard)</option><option value="kopbuis">Bovenkant Peilbuis (BKP)</option></select>
       </div>
-      <div class="form-group"><label>Maaiveld-kopbuis meten</label>
+      <div class="form-group"><label>Maaiveld-BKP meten</label>
         <select id="f_2002_kopbuis"><option value="ja">Ja</option><option value="nee">Nee (al bekend)</option></select>
       </div>
     </div>
@@ -2808,7 +2808,7 @@ function generatePDF() {
       { label: 'Representatieve lagen', checked: gc('f_2001_representatief') }
     ]);
     drawField('Verwachte grondwaterstand (m-mv):', gv('f_2001_gwstand'));
-    drawField('Maaiveld-kopbuis meten:', gv('f_2001_kopbuis'));
+    drawField('Maaiveld-BKP meten:', gv('f_2001_kopbuis'));
 
     drawSectionTitle('INMETING MEETPUNTEN');
     drawCheckRow([
@@ -2847,7 +2847,7 @@ function generatePDF() {
     ]);
     drawFieldRow([
       { label: 'Ref. grondwaterstand:', value: gv('f_2002_referentie') },
-      { label: 'Maaiveld-kopbuis:', value: gv('f_2002_kopbuis') }
+      { label: 'Maaiveld-BKP:', value: gv('f_2002_kopbuis') }
     ]);
 
     drawSectionTitle('DETAILS PEILBUIZEN');
