@@ -2067,6 +2067,23 @@ async function processPdfFile(file) {
   const ab = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
 
+  // Try embedded form data first (from our own PDF export)
+  try {
+    const meta = await pdf.getMetadata();
+    const keywords = meta?.info?.Keywords || '';
+    if (keywords.startsWith('VELDWERK_BRL_DATA:')) {
+      const b64 = keywords.substring('VELDWERK_BRL_DATA:'.length);
+      const json = decodeURIComponent(escape(atob(b64)));
+      const data = JSON.parse(json);
+      setAllFormData(data);
+      showStatus(`\u2705 PDF geïmporteerd — alle velden hersteld (${Object.keys(data).length} velden)`, 'success');
+      return;
+    }
+  } catch(metaErr) {
+    console.warn('PDF metadata lezen mislukt, fallback naar tekst:', metaErr);
+  }
+
+  // Fallback: parse text content
   let fullText = '';
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
@@ -3079,6 +3096,14 @@ function generatePDF() {
     doc.text(`Gegenereerd: ${new Date().toLocaleDateString('nl-NL')} ${new Date().toLocaleTimeString('nl-NL', {hour:'2-digit',minute:'2-digit'})}`, W - M - 50, H - 8);
     doc.setTextColor(0, 0, 0);
   }
+
+  // Embed form data as PDF metadata (for re-import)
+  const formDataJson = JSON.stringify(getAllFormData());
+  doc.setProperties({
+    title: `VWF ${currentProtocol} - ${gv('f_projectnaam') || 'Project'}`,
+    subject: 'Ground Research BV - Veldwerkformulier BRL',
+    keywords: 'VELDWERK_BRL_DATA:' + btoa(unescape(encodeURIComponent(formDataJson)))
+  });
 
   // Save
   const filename = `VWF_${protoList.join('-')}_${gv('f_projectnaam') || 'project'}_${new Date().toISOString().split('T')[0]}.pdf`;
